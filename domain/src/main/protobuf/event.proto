@@ -1,0 +1,38 @@
+syntax = "proto2";
+
+package org.sofi.deadman.messages;
+
+// Events -----------------------------------------------------------------------------------------
+
+message Task {
+    required string key = 1;       // Task key
+    required string aggregate = 2; // Aggregate ID (eg application)
+    required string entity = 3;    // Entity ID (eg customer)
+    required uint64 ts = 4;        // Creation timestamp
+    required uint64 ttl = 5;       // Task ttl in millis
+    repeated uint64 ttw = 6;       // Task time until warning
+    repeated string tags = 7;      // Task tags
+}
+
+message TaskTermination {
+    required string key = 1;       // Task key
+    required string aggregate = 2; // Aggregate ID (eg application)
+    required string entity = 3;    // Entity ID (eg customer)
+}
+
+    message TaskExpiration {
+    required Task task = 1;        // Expired task
+    required uint64 ts = 2;        // Expiration timestamp
+}
+
+message TaskWarning {
+    required Task task = 1;        // Task about to expire
+    required uint64 ts = 2;        // Warning timestamp
+}
+
+message TaggedExpiration {
+    required Task task = 1;        // Expired task
+    required string tag = 2;       // Tag
+    required string window = 3;    // Time window (a day[20170920] or month[201709])
+    required uint64 ts = 4;        // Expiration timestamp
+}

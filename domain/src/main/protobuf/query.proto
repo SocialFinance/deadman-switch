@@ -1,0 +1,30 @@
+syntax = "proto2";
+
+package org.sofi.deadman.messages;
+
+import "event.proto";
+
+// Queries ----------------------------------------------------------------------------------------
+
+message GetTasks {
+    enum ViewType {
+        AGGREGATE = 1;
+        ENTITY = 2;
+    }
+    required ViewType view = 1;    // The view to query
+    optional string aggregate = 2; // Aggregate ID (eg application)
+    optional string entity = 3;    // Entity ID (eg customer)
+}
+
+message GetTags {
+    required string tag = 1;
+    required string window = 2;
+    optional uint64 start = 3;
+    optional uint64 end = 4;
+}
+
+// Query Responses --------------------------------------------------------------------------------
+
+message Tasks {
+    repeated Task tasks = 1;
+}

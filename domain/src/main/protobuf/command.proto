@@ -1,0 +1,31 @@
+syntax = "proto2";
+
+package org.sofi.deadman.messages;
+
+// Commands ---------------------------------------------------------------------------------------
+
+message ScheduleTask {
+    required string key = 1;       // Task keys
+    required string aggregate = 2; // Aggregate ID (eg application)
+    required string entity = 3;    // Entity ID (eg customer)
+    required uint64 ttl = 4;       // Task time to live in millis
+    repeated uint64 ttw = 5;       // Task time until warning
+    repeated string tags = 6;      // Task tags
+}
+
+message CompleteTask {
+    required string key = 1;       // Task key
+    required string aggregate = 2; // Aggregate ID (eg application)
+    required string entity = 3;    // Entity ID (eg customer)
+}
+
+// Command Response -------------------------------------------------------------------------------
+
+message CommandResponse {
+    enum ResponseType {
+        SUCCESS = 0;
+        ERROR = 1;
+    }
+    required string body = 1;
+    required ResponseType responseType = 2 [default = SUCCESS];
+}

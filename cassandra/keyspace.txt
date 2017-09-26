@@ -1,0 +1,50 @@
+CREATE KEYSPACE deadman
+  WITH replication = {'class': 'SimpleStrategy', 'replication_factor': '1'}
+  AND durable_writes = true;
+
+USE deadman;
+
+CREATE TABLE warning (
+  aggregate TEXT,
+  entity TEXT,
+  key TEXT,
+  ttw BIGINT,
+  creation BIGINT,
+  warning BIGINT,
+  tags TEXT,
+  PRIMARY KEY (aggregate, entity, key, ttw)
+);
+
+CREATE TABLE violation (
+  aggregate TEXT,
+  entity TEXT,
+  key TEXT,
+  ttl BIGINT,
+  creation BIGINT,
+  expiration BIGINT,
+  tags TEXT,
+  PRIMARY KEY (aggregate, entity, key)
+);
+
+CREATE TABLE tagged_violation (
+  tag TEXT,
+  window TEXT,
+  expiration BIGINT,
+  aggregate TEXT,
+  entity TEXT,
+  key TEXT,
+  ttl BIGINT,
+  creation BIGINT,
+  tags TEXT,
+  PRIMARY KEY ((tag, window), expiration)
+);
+
+CREATE TABLE write_progress (
+  id TEXT,
+  sequence_nr BIGINT,
+  PRIMARY KEY (id)
+);
+
+INSERT INTO write_progress (id, sequence_nr) VALUES ('TaskExpirationWriter', 0);
+INSERT INTO write_progress (id, sequence_nr) VALUES ('TaskWarningWriter', 0);
+INSERT INTO write_progress (id, sequence_nr) VALUES ('TaggedExpirationWriter', 0);
