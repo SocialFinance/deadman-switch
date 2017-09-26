@@ -43,5 +43,6 @@ final class NetworkLocation(val id: String)(implicit system: ActorSystem) {
   // Query
   private val aggregateView = system.actorOf(AggregateView.props(s"$id-aggregate-view", eventLog))
   private val entityView = system.actorOf(EntityView.props(s"$id-entity-view", eventLog))
-  val queryManager = system.actorOf(QueryManager.props(aggregateView, entityView, tagWriter))
+  private val keyView = system.actorOf(KeyView.props(s"$id-key-view", eventLog))
+  val queryManager = system.actorOf(QueryManager.props(aggregateView, entityView, keyView, tagWriter))
 }

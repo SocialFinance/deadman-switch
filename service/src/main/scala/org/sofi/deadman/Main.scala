@@ -73,6 +73,9 @@ private final class CommandLine(val commandManager: ActorRef, val queryManager: 
       case "query" :: "scheduled" :: "entity" :: id :: Nil ⇒
         queryManager ! GetTasks(GetTasks.ViewType.ENTITY, entity = Some(id))
 
+      case "query" :: "scheduled" :: "key" :: value :: Nil ⇒
+        queryManager ! GetTasks(GetTasks.ViewType.KEY, key = Some(value))
+
       case "query" :: "expired" :: "tag" :: tag :: window :: Nil ⇒
         queryManager ! GetTags(tag, window)
 

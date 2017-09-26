@@ -26,7 +26,9 @@ final class TaggedExpirationWriter(val id: String, val eventLog: ActorRef) exten
       val _ = TaggedViolation.select(q.tag, q.window, start, end) map { result ⇒
         Tasks(result.map(v ⇒ Task(v.key, v.aggregate, v.entity, v.creation, v.ttl, Seq.empty, v.tags.split(","))))
       } recoverWith {
-        case _: Throwable ⇒ Future.successful(Tasks(Seq.empty))
+        case t: Throwable ⇒
+          log.warning("Tagged violation query warning", t)
+          Future.successful(Tasks(Seq.empty))
       } pipeTo sender()
   }
 

@@ -20,7 +20,7 @@ message TaskTermination {
     required string entity = 3;    // Entity ID (eg customer)
 }
 
-    message TaskExpiration {
+message TaskExpiration {
     required Task task = 1;        // Expired task
     required uint64 ts = 2;        // Expiration timestamp
 }

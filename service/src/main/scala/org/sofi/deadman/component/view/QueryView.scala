@@ -2,7 +2,7 @@ package org.sofi.deadman.component.view
 
 import com.rbmhtechnology.eventuate._
 import org.sofi.deadman.messages.event._
-import org.sofi.deadman.messages.query._
+import org.sofi.deadman.messages.query._, GetTasks.ViewType._
 
 private[view] trait QueryView extends EventsourcedView {
 
@@ -18,7 +18,9 @@ private[view] trait QueryView extends EventsourcedView {
   // Determine the query type and return the appropriate field
   private def queryKey(gt: GetTasks): Option[String] =
     gt.view match {
-      case GetTasks.ViewType.ENTITY ⇒ gt.entity
+      case AGGREGATE ⇒ gt.aggregate
+      case ENTITY ⇒ gt.entity
+      case KEY ⇒ gt.key
       case _ ⇒ gt.aggregate
     }
 

@@ -10,10 +10,12 @@ message GetTasks {
     enum ViewType {
         AGGREGATE = 1;
         ENTITY = 2;
+        KEY = 3;
     }
     required ViewType view = 1;    // The view to query
     optional string aggregate = 2; // Aggregate ID (eg application)
     optional string entity = 3;    // Entity ID (eg customer)
+    optional string key = 4;       // Task key
 }
 
 message GetTags {

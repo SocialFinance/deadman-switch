@@ -15,23 +15,23 @@ object Violation {
   import org.sofi.deadman.storage._, db._
 
   // Syntactic sugar on violation model
-  implicit class ViolationOps(val c: Violation) extends AnyVal {
-    def save(implicit ec: ExecutionContext): Future[Unit] = Violation.save(c)
+  implicit class ViolationOps(val v: Violation) extends AnyVal {
+    def save(implicit ec: ExecutionContext): Future[Unit] = Violation.save(v)
   }
 
   // Create a violation record in C*
-  def save(c: Violation)(implicit ec: ExecutionContext): Future[Unit] =
+  def save(v: Violation)(implicit ec: ExecutionContext): Future[Unit] =
     db.run {
       quote {
         query[Violation]
-          .filter(_.aggregate == lift(c.aggregate))
-          .filter(_.entity == lift(c.entity))
-          .filter(_.key == lift(c.key))
+          .filter(_.aggregate == lift(v.aggregate))
+          .filter(_.entity == lift(v.entity))
+          .filter(_.key == lift(v.key))
           .update(
-            _.ttl -> lift(c.ttl),
-            _.creation -> lift(c.creation),
-            _.expiration -> lift(c.expiration),
-            _.tags -> lift(c.tags)
+            _.ttl -> lift(v.ttl),
+            _.creation -> lift(v.creation),
+            _.expiration -> lift(v.expiration),
+            _.tags -> lift(v.tags)
           )
       }
     }

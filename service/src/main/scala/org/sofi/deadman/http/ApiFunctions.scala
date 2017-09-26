@@ -1,6 +1,5 @@
 package org.sofi.deadman.http
 
-
 import akka.actor._
 import akka.pattern.ask
 import akka.util.Timeout
