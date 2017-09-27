@@ -19,6 +19,14 @@ object Violation {
     def save(implicit ec: ExecutionContext): Future[Unit] = Violation.save(v)
   }
 
+  // Get violations for an aggregate
+  def select(aggregate: String)(implicit ec: ExecutionContext): Future[Seq[Violation]] =
+    db.run {
+      quote {
+        query[Violation].filter(_.aggregate == lift(aggregate))
+      }
+    }
+
   // Create a violation record in C*
   def save(v: Violation)(implicit ec: ExecutionContext): Future[Unit] =
     db.run {

@@ -21,7 +21,7 @@ object TaggedViolation {
     def save(implicit ec: ExecutionContext): Future[Unit] = TaggedViolation.save(t)
   }
 
-  //
+  // Get violations for the given tag and time window, limited to a set time range
   def select(tag: String, window: String, start: Long, end: Long)(implicit ec: ExecutionContext): Future[Seq[TaggedViolation]] =
     db.run {
       quote {

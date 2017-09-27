@@ -18,6 +18,14 @@ message GetTasks {
     optional string key = 4;       // Task key
 }
 
+message GetExpirations {
+    required string aggregate = 1; // Aggregate ID (eg application)
+}
+
+message GetWarnings {
+    required string aggregate = 1; // Aggregate ID (eg application)
+}
+
 message GetTags {
     required string tag = 1;
     required string window = 2;

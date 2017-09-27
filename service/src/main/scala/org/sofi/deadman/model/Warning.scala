@@ -19,6 +19,14 @@ object Warning {
     def save(implicit ec: ExecutionContext): Future[Unit] = Warning.save(w)
   }
 
+  // Get warnings for an aggregate
+  def select(aggregate: String)(implicit ec: ExecutionContext): Future[Seq[Warning]] =
+    db.run {
+      quote {
+        query[Warning].filter(_.aggregate == lift(aggregate))
+      }
+    }
+
   // Create a warning record in C*
   def save(w: Warning)(implicit ec: ExecutionContext): Future[Unit] =
     db.run {
