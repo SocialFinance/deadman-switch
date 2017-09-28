@@ -5,53 +5,28 @@ import akka.pattern.pipe
 import org.sofi.deadman.messages.event._
 import org.sofi.deadman.messages.query._
 import org.sofi.deadman.model._
-import scala.concurrent.Future
 
-final class AggregateWarningWriter(val id: String, val eventLog: ActorRef) extends TaskWriter with ActorLogging {
+final class AggregateWarningWriter(val id: String, val eventLog: ActorRef) extends TaskWriter[AggregateWarning] {
 
   // Writer ID
   val writerId = "AggregateWarningWriter"
 
-  // Implicit execution context
-  import context.dispatcher
-
-  // Batch models during event processing.
-  private var batch: Vector[AggregateWarning] = Vector.empty
+  // Aggregate query for task warnings
+  override def onCommand: Receive = {
+    case q: GetWarnings ⇒
+      val _ = AggregateWarning.select(q.aggregate.getOrElse("")).map { result ⇒
+        Tasks(result.map(w ⇒ Task(w.key, w.aggregate, w.entity, w.creation, w.creation, Seq(w.ttw), w.tags.split(","))))
+      } recoverWith noTasks pipeTo sender()
+  }
 
   // Convert events to models and batch. Note: An event handler should never write to the database directly.
   def onEvent = {
     case TaskWarning(t, ttw) ⇒
-      val tags = t.tags.sorted.mkString(",")
-      val warning = AggregateWarning(t.aggregate, t.key, ttw, t.entity, t.ttl, t.ts, System.currentTimeMillis(), tags)
-      batch = batch :+ warning
+      cache(AggregateWarning(t.aggregate, t.key, ttw, t.entity, t.ttl, t.ts, System.currentTimeMillis(), t.tags.sorted.mkString(",")))
   }
 
-  // Aggregate query for task warnings
-  override def onCommand: Receive = {
-    case q: GetWarnings ⇒
-      val aggregate = q.aggregate.getOrElse("")
-      val _ = AggregateWarning.select(aggregate).map { result ⇒
-        Tasks(result.map(w ⇒ Task(w.key, w.aggregate, w.entity, w.creation, w.creation, Seq(w.ttw), w.tags.split(","))))
-      } recoverWith {
-        case t: Throwable ⇒
-          log.warning("Warning query exception", t)
-          Future.successful(Tasks(Seq.empty))
-      } pipeTo sender()
-  }
-
-  // Reads the sequence number of the last update; called only once after writer start or restart.
-  def read(): Future[Long] = WriteProgress.read(writerId)
-
-  // Asynchronously writes the batch and sequence number of the last processed event to the database.
-  def write(): Future[Unit] = {
-    val nr = lastSequenceNr
-    val res = for {
-      _ ← Future.sequence(batch.map(_.save))
-      _ ← WriteProgress.write(writerId, nr)
-    } yield ()
-    batch = Vector.empty // clear so that events can be processed while the write is in progress.
-    res
-  }
+  // Save an aggregate warning to C*
+  override def save(model: AggregateWarning) = model.save
 }
 
 object AggregateWarningWriter {
