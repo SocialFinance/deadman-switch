@@ -3,8 +3,18 @@ package org.sofi.deadman.component.view
 import akka.actor._
 import org.sofi.deadman.messages.query._, GetTasks.ViewType._
 
-final class ViewManager(aggregateView: ActorRef, entityView: ActorRef, keyView: ActorRef) extends Actor with ActorLogging {
+final class ViewManager(val id: String, val eventLog: ActorRef) extends Actor with ActorLogging {
 
+  // Query scheduled tasks by aggregate
+  private val aggregateView = context.actorOf(AggregateView.props(AggregateView.name(id), eventLog))
+
+  // Query scheduled tasks by entity
+  private val entityView = context.actorOf(EntityView.props(EntityView.name(id), eventLog))
+
+  // Query scheduled tasks by key
+  private val keyView = context.actorOf(KeyView.props(KeyView.name(id), eventLog))
+
+  // Forward queries to views
   def receive: Receive = {
     case query: GetTasks ⇒ query.view match {
       case AGGREGATE ⇒ aggregateView forward query
@@ -16,7 +26,5 @@ final class ViewManager(aggregateView: ActorRef, entityView: ActorRef, keyView: 
 }
 
 object ViewManager {
-  def props(aggregateView: ActorRef, entityView: ActorRef, keyView: ActorRef): Props = Props(
-    new ViewManager(aggregateView, entityView, keyView)
-  )
+  def props(id: String, eventLog: ActorRef): Props = Props(new ViewManager(id, eventLog))
 }

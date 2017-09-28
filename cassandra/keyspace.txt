@@ -4,18 +4,31 @@ CREATE KEYSPACE deadman
 
 USE deadman;
 
-CREATE TABLE warning (
+CREATE TABLE aggregate_warning (
   aggregate TEXT,
-  entity TEXT,
   key TEXT,
   ttw BIGINT,
+  entity TEXT,
+  ttl BIGINT,
   creation BIGINT,
   warning BIGINT,
   tags TEXT,
-  PRIMARY KEY (aggregate, entity, key, ttw)
+  PRIMARY KEY (aggregate, key, ttw)
 );
 
-CREATE TABLE violation (
+CREATE TABLE entity_warning (
+  entity TEXT,
+  key TEXT,
+  ttw BIGINT,
+  aggregate TEXT,
+  ttl BIGINT,
+  creation BIGINT,
+  warning BIGINT,
+  tags TEXT,
+  PRIMARY KEY (entity, key, ttw)
+);
+
+CREATE TABLE aggregate_expiration (
   aggregate TEXT,
   entity TEXT,
   key TEXT,
@@ -23,10 +36,21 @@ CREATE TABLE violation (
   creation BIGINT,
   expiration BIGINT,
   tags TEXT,
-  PRIMARY KEY (aggregate, entity, key)
+  PRIMARY KEY (aggregate, key)
 );
 
-CREATE TABLE tagged_violation (
+CREATE TABLE entity_expiration (
+  entity TEXT,
+  aggregate TEXT,
+  key TEXT,
+  ttl BIGINT,
+  creation BIGINT,
+  expiration BIGINT,
+  tags TEXT,
+  PRIMARY KEY (entity, key)
+);
+
+CREATE TABLE tag_expiration (
   tag TEXT,
   window TEXT,
   expiration BIGINT,
@@ -45,6 +69,8 @@ CREATE TABLE write_progress (
   PRIMARY KEY (id)
 );
 
-INSERT INTO write_progress (id, sequence_nr) VALUES ('TaskExpirationWriter', 0);
-INSERT INTO write_progress (id, sequence_nr) VALUES ('TaskWarningWriter', 0);
+INSERT INTO write_progress (id, sequence_nr) VALUES ('AggregateWarningWriter', 0);
+INSERT INTO write_progress (id, sequence_nr) VALUES ('AggregateExpirationWriter', 0);
+INSERT INTO write_progress (id, sequence_nr) VALUES ('EntityWarningWriter', 0);
+INSERT INTO write_progress (id, sequence_nr) VALUES ('EntityExpirationWriter', 0);
 INSERT INTO write_progress (id, sequence_nr) VALUES ('TaggedExpirationWriter', 0);

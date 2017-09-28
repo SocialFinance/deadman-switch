@@ -7,37 +7,36 @@ import org.sofi.deadman.messages.query._
 import org.sofi.deadman.model._
 import scala.concurrent.Future
 
-final class TaggedExpirationWriter(val id: String, val eventLog: ActorRef) extends TaskWriter with ActorLogging {
+final class AggregateExpirationWriter(val id: String, val eventLog: ActorRef) extends TaskWriter with ActorLogging {
 
   // Writer ID
-  val writerId = "TaggedExpirationWriter"
+  val writerId = "AggregateExpirationWriter"
 
   // Implicit execution context
   import context.dispatcher
 
   // Batch models during event processing.
-  private var batch: Vector[TagExpiration] = Vector.empty
+  private var batch: Vector[AggregateExpiration] = Vector.empty
 
-  // Query C* for tagged violations
-  override def onCommand = {
-    case q: GetTags ⇒
-      val start = q.start.getOrElse(Long.MinValue)
-      val end = q.end.getOrElse(Long.MaxValue)
-      val _ = TagExpiration.select(q.tag, q.window, start, end) map { result ⇒
-        Tasks(result.map(v ⇒ Task(v.key, v.aggregate, v.entity, v.creation, v.ttl, Seq.empty, v.tags.split(","))))
+  // Query for expired tasks
+  override def onCommand: Receive = {
+    case q: GetExpirations ⇒
+      val aggregate = q.aggregate.getOrElse("")
+      val _ = AggregateExpiration.select(aggregate).map { result ⇒
+        Tasks(result.map(e ⇒ Task(e.key, e.aggregate, e.entity, e.creation, e.ttl, Seq.empty, e.tags.split(","))))
       } recoverWith {
         case t: Throwable ⇒
-          log.warning("Tagged violation query warning", t)
+          log.warning("Violation query exception", t)
           Future.successful(Tasks(Seq.empty))
       } pipeTo sender()
   }
 
   // Convert events to models and batch. Note: An event handler should never write to the database directly.
   def onEvent = {
-    case TaggedExpiration(task, tag, window, ts) ⇒
-      val tags = task.tags.sorted.mkString(",")
-      val violation = TagExpiration(tag, window, ts, task.aggregate, task.entity, task.key, task.ttl, task.ts, tags)
-      batch = batch :+ violation
+    case TaskExpiration(t, exp) ⇒
+      val tags = t.tags.sorted.mkString(",")
+      val expiration = AggregateExpiration(t.aggregate, t.entity, t.key, t.ttl, t.ts, exp, tags)
+      batch = batch :+ expiration
   }
 
   // Reads the sequence number of the last update; called only once after writer start or restart.
@@ -55,7 +54,7 @@ final class TaggedExpirationWriter(val id: String, val eventLog: ActorRef) exten
   }
 }
 
-object TaggedExpirationWriter {
-  def name(id: String): String = s"$id-tagged-expiration-writer"
-  def props(id: String, eventLog: ActorRef): Props = Props(new TaggedExpirationWriter(id, eventLog))
+object AggregateExpirationWriter {
+  def name(id: String): String = s"$id-agg-expiration-writer"
+  def props(id: String, eventLog: ActorRef): Props = Props(new AggregateExpirationWriter(id, eventLog))
 }

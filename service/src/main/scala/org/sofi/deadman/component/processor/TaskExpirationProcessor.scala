@@ -5,8 +5,7 @@ import org.sofi.deadman.messages.event._
 import java.util.{ Date, TimeZone }
 import java.text.SimpleDateFormat
 
-final class TaskExpirationProcessor(val id: String, val eventLog: ActorRef, val targetEventLog: ActorRef)
-  extends EventProcessor {
+final class TaskExpirationProcessor(val id: String, val eventLog: ActorRef, val targetEventLog: ActorRef) extends EventProcessor {
 
   // Time window format function
   private def format(pattern: String): String = {
@@ -26,6 +25,7 @@ final class TaskExpirationProcessor(val id: String, val eventLog: ActorRef, val 
 }
 
 object TaskExpirationProcessor {
+  def name(id: String): String = s"$id-task-expiration-processor"
   def props(id: String, eventLog: ActorRef, targetEventLog: ActorRef): Props = Props(
     new TaskExpirationProcessor(id, eventLog, targetEventLog)
   )

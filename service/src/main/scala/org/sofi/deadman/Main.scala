@@ -61,11 +61,15 @@ private final class CommandLine(val commandManager: ActorRef, val queryManager: 
     // Process CLI and send commands and/or queries
     case line: String ⇒ line.trim.split(' ').toList match {
 
+      // Commands
+
       case "schedule" :: key :: agg :: ent :: ttl :: ttw :: tags ⇒
         commandManager ! ScheduleTask(key, agg, ent, ttl.toLong, Seq(ttw.toLong), tags)
 
       case "complete" :: key :: agg :: ent :: Nil ⇒
         commandManager ! CompleteTask(key, agg, ent)
+
+      // Query scheduled tasks
 
       case "query" :: "scheduled" :: "aggregate" :: id :: Nil ⇒
         queryManager ! GetTasks(GetTasks.ViewType.AGGREGATE, aggregate = Some(id))
@@ -76,14 +80,24 @@ private final class CommandLine(val commandManager: ActorRef, val queryManager: 
       case "query" :: "scheduled" :: "key" :: value :: Nil ⇒
         queryManager ! GetTasks(GetTasks.ViewType.KEY, key = Some(value))
 
-      case "query" :: "expired" :: id :: Nil ⇒
-        queryManager ! GetExpirations(id)
+      // Query expired tasks
 
-      case "query" :: "warnings" :: id :: Nil ⇒
-        queryManager ! GetWarnings(id)
+      case "query" :: "expired" :: "aggregate" :: id :: Nil ⇒
+        queryManager ! GetExpirations(QueryType.AGGREGATE, aggregate = Some(id))
+
+      case "query" :: "expired" :: "entity" :: id :: Nil ⇒
+        queryManager ! GetExpirations(QueryType.ENTITY, entity = Some(id))
 
       case "query" :: "expired" :: "tag" :: tag :: window :: Nil ⇒
         queryManager ! GetTags(tag, window)
+
+      // Query task warnings
+
+      case "query" :: "warnings" :: "aggregate" :: id :: Nil ⇒
+        queryManager ! GetWarnings(QueryType.AGGREGATE, aggregate = Some(id))
+
+      case "query" :: "warnings" :: "entity" :: id :: Nil ⇒
+        queryManager ! GetWarnings(QueryType.ENTITY, entity = Some(id))
 
       case _ ⇒
         prompt()

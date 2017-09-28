@@ -9,5 +9,6 @@ final class KeyView(val id: String, val eventLog: ActorRef) extends QueryView {
 }
 
 object KeyView {
+  def name(id: String): String = s"$id-key-view"
   def props(id: String, eventLog: ActorRef): Props = Props(new KeyView(id, eventLog))
 }

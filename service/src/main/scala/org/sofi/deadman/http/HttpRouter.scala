@@ -59,10 +59,10 @@ class HttpRouter(implicit api: ApiFunctions) extends JsonProtocol {
     }
 
   private val expirations =
-    pathPrefix("deadman" / "api" / "v1" / "expiration" / Segment) { id ⇒
+    pathPrefix("deadman" / "api" / "v1" / "aggregate" / Segment / "expiration") { id ⇒
       pathEndOrSingleSlash {
         get {
-          onSuccess(queryExpirations(id)) { tasks ⇒
+          onSuccess(queryAggregateExpirations(id)) { tasks ⇒
             complete(tasks)
           }
         }
@@ -70,10 +70,10 @@ class HttpRouter(implicit api: ApiFunctions) extends JsonProtocol {
     }
 
   private val warnings =
-    pathPrefix("deadman" / "api" / "v1" / "warning" / Segment) { id ⇒
+    pathPrefix("deadman" / "api" / "v1" / "aggregate" / Segment / "warning") { id ⇒
       pathEndOrSingleSlash {
         get {
-          onSuccess(queryWarnings(id)) { tasks ⇒
+          onSuccess(queryAggregateWarnings(id)) { tasks ⇒
             complete(tasks)
           }
         }

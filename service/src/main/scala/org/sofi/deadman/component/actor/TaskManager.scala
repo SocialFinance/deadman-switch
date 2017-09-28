@@ -5,12 +5,12 @@ import com.rbmhtechnology.eventuate._
 import org.sofi.deadman.messages.command._
 import org.sofi.deadman.messages.event._
 
-final class TaskManager(val id: String, val eventLog: ActorRef) extends EventsourcedActor with ActorLogging {
+final class TaskManager(val id: String, val eventLog: ActorRef) extends EventsourcedActor {
 
   // Actor registry
   private var registry: Map[String, ActorRef] = Map.empty
 
-  // Lazy load an actor
+  // Load an actor
   protected def actorFor(aggregate: String) =
     registry.get(aggregate) match {
       case Some(actor) ⇒ actor
@@ -37,5 +37,6 @@ final class TaskManager(val id: String, val eventLog: ActorRef) extends Eventsou
 }
 
 object TaskManager {
+  def name(id: String): String = s"$id-task-manager"
   def props(id: String, eventLog: ActorRef): Props = Props(new TaskManager(id, eventLog))
 }

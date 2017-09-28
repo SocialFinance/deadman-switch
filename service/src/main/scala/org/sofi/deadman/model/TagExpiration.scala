@@ -1,6 +1,6 @@
 package org.sofi.deadman.model
 
-final case class TaggedViolation(
+final case class TagExpiration(
   tag: String,
   window: String,
   expiration: Long,
@@ -12,20 +12,20 @@ final case class TaggedViolation(
   tags: String
 )
 
-object TaggedViolation {
+object TagExpiration {
   import scala.concurrent.{ ExecutionContext, Future }
   import org.sofi.deadman.storage._, db._
 
   // Syntactic sugar on a tagged violation model
-  implicit class TaggedViolationOps(val t: TaggedViolation) extends AnyVal {
-    def save(implicit ec: ExecutionContext): Future[Unit] = TaggedViolation.save(t)
+  implicit class TaggedViolationOps(val t: TagExpiration) extends AnyVal {
+    def save(implicit ec: ExecutionContext): Future[Unit] = TagExpiration.save(t)
   }
 
   // Get violations for the given tag and time window, limited to a set time range
-  def select(tag: String, window: String, start: Long, end: Long)(implicit ec: ExecutionContext): Future[Seq[TaggedViolation]] =
+  def select(tag: String, window: String, start: Long, end: Long)(implicit ec: ExecutionContext): Future[Seq[TagExpiration]] =
     db.run {
       quote {
-        query[TaggedViolation]
+        query[TagExpiration]
           .filter(_.tag == lift(tag))
           .filter(_.window == lift(window))
           .filter(_.expiration >= lift(start))
@@ -34,10 +34,10 @@ object TaggedViolation {
     }
 
   // Create a tagged violation record in C*
-  def save(t: TaggedViolation)(implicit ec: ExecutionContext): Future[Unit] =
+  def save(t: TagExpiration)(implicit ec: ExecutionContext): Future[Unit] =
     db.run {
       quote {
-        query[TaggedViolation]
+        query[TagExpiration]
           .filter(_.tag == lift(t.tag))
           .filter(_.window == lift(t.window))
           .filter(_.expiration == lift(t.expiration))

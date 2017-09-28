@@ -7,8 +7,7 @@ import org.sofi.deadman.messages.event._
 import scala.concurrent.duration._
 import scala.util.{ Failure, Success }
 
-final class TaskActor(val aggregate: String, val replica: String, val eventLog: ActorRef)
-  extends EventsourcedActor with ActorLogging {
+final class TaskActor(val aggregate: String, val replica: String, val eventLog: ActorRef) extends EventsourcedActor with ActorLogging {
 
   // Implicit execution context
   import context.dispatcher

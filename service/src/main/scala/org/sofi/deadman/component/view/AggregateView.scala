@@ -9,5 +9,6 @@ final class AggregateView(val id: String, val eventLog: ActorRef) extends QueryV
 }
 
 object AggregateView {
+  def name(id: String): String = s"$id-aggregate-view"
   def props(id: String, eventLog: ActorRef): Props = Props(new AggregateView(id, eventLog))
 }

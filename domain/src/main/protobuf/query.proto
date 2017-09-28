@@ -18,12 +18,21 @@ message GetTasks {
     optional string key = 4;       // Task key
 }
 
+enum QueryType {
+    AGGREGATE = 1;
+    ENTITY = 2;
+}
+
 message GetExpirations {
-    required string aggregate = 1; // Aggregate ID (eg application)
+    required QueryType queryType = 1; // The writer to query
+    optional string aggregate = 2;    // Aggregate ID (eg application)
+    optional string entity = 3;       // Entity ID (eg customer)
 }
 
 message GetWarnings {
-    required string aggregate = 1; // Aggregate ID (eg application)
+    required QueryType queryType = 1; // The writer to query
+    optional string aggregate = 2;    // Aggregate ID (eg application)
+    optional string entity = 3;       // Entity ID (eg customer)
 }
 
 message GetTags {
