@@ -44,7 +44,8 @@ trait TaskWriter[T] extends EventsourcedWriter[Long, Unit] with ActorLogging {
 
   // Generic future error handler function
   def noTasks: PartialFunction[Throwable, Future[Tasks]] = {
-    case NonFatal(_) ⇒
+    case NonFatal(t) ⇒
+      log.warning("Task query exception", t)
       Future.successful(Tasks(Seq.empty))
   }
 
