@@ -58,8 +58,8 @@ class HttpRouter(implicit api: ApiFunctions) extends JsonProtocol {
       }
     }
 
-  private val expirations =
-    pathPrefix("deadman" / "api" / "v1" / "aggregate" / Segment / "expiration") { id ⇒
+  private val aggExpirations =
+    pathPrefix("deadman" / "api" / "v1" / "aggregate" / Segment / "expirations") { id ⇒
       pathEndOrSingleSlash {
         get {
           onSuccess(queryAggregateExpirations(id)) { tasks ⇒
@@ -69,11 +69,33 @@ class HttpRouter(implicit api: ApiFunctions) extends JsonProtocol {
       }
     }
 
-  private val warnings =
-    pathPrefix("deadman" / "api" / "v1" / "aggregate" / Segment / "warning") { id ⇒
+  private val aggWarnings =
+    pathPrefix("deadman" / "api" / "v1" / "aggregate" / Segment / "warnings") { id ⇒
       pathEndOrSingleSlash {
         get {
           onSuccess(queryAggregateWarnings(id)) { tasks ⇒
+            complete(tasks)
+          }
+        }
+      }
+    }
+
+  private val entExpirations =
+    pathPrefix("deadman" / "api" / "v1" / "entity" / Segment / "expirations") { id ⇒
+      pathEndOrSingleSlash {
+        get {
+          onSuccess(queryEntityExpirations(id)) { tasks ⇒
+            complete(tasks)
+          }
+        }
+      }
+    }
+
+  private val entWarnings =
+    pathPrefix("deadman" / "api" / "v1" / "entity" / Segment / "warnings") { id ⇒
+      pathEndOrSingleSlash {
+        get {
+          onSuccess(queryEntityWarnings(id)) { tasks ⇒
             complete(tasks)
           }
         }
@@ -93,7 +115,7 @@ class HttpRouter(implicit api: ApiFunctions) extends JsonProtocol {
       }
     }
 
-  val routes = schedule ~ completed ~ aggregate ~ entity ~ expirations ~ warnings ~ tags
+  val routes = schedule ~ completed ~ aggregate ~ entity ~ aggExpirations ~ aggWarnings ~ entExpirations ~ entWarnings ~ tags
 
   // format: ON
 }
