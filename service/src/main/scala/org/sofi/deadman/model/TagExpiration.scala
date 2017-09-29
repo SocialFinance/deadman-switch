@@ -14,11 +14,13 @@ final case class TagExpiration(
 
 object TagExpiration {
   import scala.concurrent.{ ExecutionContext, Future }
+  import org.sofi.deadman.messages.event.Task
   import org.sofi.deadman.storage._, db._
 
   // Syntactic sugar on a tagged violation model
-  implicit class TaggedViolationOps(val t: TagExpiration) extends AnyVal {
-    def save(implicit ec: ExecutionContext): Future[Unit] = TagExpiration.save(t)
+  implicit class TaggedViolationOps(val e: TagExpiration) extends AnyVal {
+    def asTask: Task = Task(e.key, e.aggregate, e.entity, e.creation, e.ttl, Seq.empty, e.tags.split(","))
+    def save(implicit ec: ExecutionContext): Future[Unit] = TagExpiration.save(e)
   }
 
   // Get violations for the given tag and time window, limited to a set time range

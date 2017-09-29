@@ -5,20 +5,19 @@ import akka.pattern.pipe
 import org.sofi.deadman.messages.event._
 import org.sofi.deadman.messages.query._
 import org.sofi.deadman.model._
-import scala.concurrent.Future
 
 final class TaggedExpirationWriter(val id: String, val eventLog: ActorRef) extends TaskWriter[TagExpiration] {
 
   // Writer ID
   val writerId = "TaggedExpirationWriter"
 
-  // Query C* for tagged violations
+  // Query C* for tagged expirations
   override def onCommand = {
     case q: GetTags ⇒
       val start = q.start.getOrElse(Long.MinValue)
       val end = q.end.getOrElse(Long.MaxValue)
       val _ = TagExpiration.select(q.tag, q.window, start, end) map { result ⇒
-        Tasks(result.map(v ⇒ Task(v.key, v.aggregate, v.entity, v.creation, v.ttl, Seq.empty, v.tags.split(","))))
+        Tasks(result.map(_.asTask))
       } recoverWith noTasks pipeTo sender()
   }
 
@@ -29,7 +28,7 @@ final class TaggedExpirationWriter(val id: String, val eventLog: ActorRef) exten
   }
 
   // Save a tagged expiration to C*
-  override def write(model: TagExpiration): Future[Unit] = model.save
+  override def write(model: TagExpiration) = model.save
 }
 
 object TaggedExpirationWriter {

@@ -5,7 +5,6 @@ import akka.pattern.pipe
 import org.sofi.deadman.messages.event._
 import org.sofi.deadman.messages.query._
 import org.sofi.deadman.model._
-import scala.concurrent.Future
 
 final class EntityExpirationWriter(val id: String, val eventLog: ActorRef) extends TaskWriter[EntityExpiration] {
 
@@ -16,7 +15,7 @@ final class EntityExpirationWriter(val id: String, val eventLog: ActorRef) exten
   override def onCommand = {
     case q: GetExpirations ⇒
       val _ = EntityExpiration.select(q.entity.getOrElse("")).map { result ⇒
-        Tasks(result.map(e ⇒ Task(e.key, e.aggregate, e.entity, e.creation, e.ttl, Seq.empty, e.tags.split(","))))
+        Tasks(result.map(_.asTask))
       } recoverWith noTasks pipeTo sender()
   }
 
@@ -27,7 +26,7 @@ final class EntityExpirationWriter(val id: String, val eventLog: ActorRef) exten
   }
 
   // Save an entity expiration to C*
-  override def write(model: EntityExpiration): Future[Unit] = model.save
+  override def write(model: EntityExpiration) = model.save
 }
 
 object EntityExpirationWriter {

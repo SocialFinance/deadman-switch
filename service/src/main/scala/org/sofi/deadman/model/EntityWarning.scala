@@ -13,10 +13,12 @@ final case class EntityWarning(
 
 object EntityWarning {
   import scala.concurrent.{ ExecutionContext, Future }
+  import org.sofi.deadman.messages.event.Task
   import org.sofi.deadman.storage._, db._
 
   // Syntactic sugar on entity warning model
   implicit class EntityWarningOps(val w: EntityWarning) extends AnyVal {
+    def asTask: Task = Task(w.key, w.aggregate, w.entity, w.creation, w.ttl, Seq(w.ttw), w.tags.split(","))
     def save(implicit ec: ExecutionContext): Future[Unit] = EntityWarning.save(w)
   }
 

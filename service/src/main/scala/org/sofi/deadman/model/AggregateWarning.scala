@@ -13,10 +13,12 @@ final case class AggregateWarning(
 
 object AggregateWarning {
   import scala.concurrent.{ ExecutionContext, Future }
+  import org.sofi.deadman.messages.event.Task
   import org.sofi.deadman.storage._, db._
 
   // Syntactic sugar on warning model
   implicit class ComplianceWarningOps(val w: AggregateWarning) extends AnyVal {
+    def asTask: Task = Task(w.key, w.aggregate, w.entity, w.creation, w.creation, Seq(w.ttw), w.tags.split(","))
     def save(implicit ec: ExecutionContext): Future[Unit] = AggregateWarning.save(w)
   }
 

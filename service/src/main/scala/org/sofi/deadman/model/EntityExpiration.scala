@@ -12,11 +12,13 @@ final case class EntityExpiration(
 
 object EntityExpiration {
   import scala.concurrent.{ ExecutionContext, Future }
+  import org.sofi.deadman.messages.event.Task
   import org.sofi.deadman.storage._, db._
 
   // Syntactic sugar on entity warning model
-  implicit class EntityExpirationOps(val w: EntityExpiration) extends AnyVal {
-    def save(implicit ec: ExecutionContext): Future[Unit] = EntityExpiration.save(w)
+  implicit class EntityExpirationOps(val e: EntityExpiration) extends AnyVal {
+    def asTask: Task = Task(e.key, e.aggregate, e.entity, e.creation, e.ttl, Seq.empty, e.tags.split(","))
+    def save(implicit ec: ExecutionContext): Future[Unit] = EntityExpiration.save(e)
   }
 
   // Get warnings for an aggregate

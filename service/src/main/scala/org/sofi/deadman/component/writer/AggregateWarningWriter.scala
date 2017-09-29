@@ -15,7 +15,7 @@ final class AggregateWarningWriter(val id: String, val eventLog: ActorRef) exten
   override def onCommand: Receive = {
     case q: GetWarnings ⇒
       val _ = AggregateWarning.select(q.aggregate.getOrElse("")).map { result ⇒
-        Tasks(result.map(w ⇒ Task(w.key, w.aggregate, w.entity, w.creation, w.creation, Seq(w.ttw), w.tags.split(","))))
+        Tasks(result.map(_.asTask))
       } recoverWith noTasks pipeTo sender()
   }
 

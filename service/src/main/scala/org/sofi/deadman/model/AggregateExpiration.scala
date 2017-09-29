@@ -12,11 +12,13 @@ final case class AggregateExpiration(
 
 object AggregateExpiration {
   import scala.concurrent.{ ExecutionContext, Future }
+  import org.sofi.deadman.messages.event.Task
   import org.sofi.deadman.storage._, db._
 
   // Syntactic sugar on violation model
-  implicit class ViolationOps(val v: AggregateExpiration) extends AnyVal {
-    def save(implicit ec: ExecutionContext): Future[Unit] = AggregateExpiration.save(v)
+  implicit class ViolationOps(val e: AggregateExpiration) extends AnyVal {
+    def asTask: Task = Task(e.key, e.aggregate, e.entity, e.creation, e.ttl, Seq.empty, e.tags.split(","))
+    def save(implicit ec: ExecutionContext): Future[Unit] = AggregateExpiration.save(e)
   }
 
   // Get violations for an aggregate
