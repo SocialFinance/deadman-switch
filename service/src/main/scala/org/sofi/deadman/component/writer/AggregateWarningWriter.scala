@@ -22,11 +22,11 @@ final class AggregateWarningWriter(val id: String, val eventLog: ActorRef) exten
   // Convert events to models and batch. Note: An event handler should never write to the database directly.
   def onEvent = {
     case TaskWarning(t, ttw) ⇒
-      cache(AggregateWarning(t.aggregate, t.key, ttw, t.entity, t.ttl, t.ts, System.currentTimeMillis(), t.tags.sorted.mkString(",")))
+      batch(AggregateWarning(t.aggregate, t.key, ttw, t.entity, t.ttl, t.ts, System.currentTimeMillis(), t.tags.sorted.mkString(",")))
   }
 
   // Save an aggregate warning to C*
-  override def save(model: AggregateWarning) = model.save
+  override def write(model: AggregateWarning) = model.save
 }
 
 object AggregateWarningWriter {

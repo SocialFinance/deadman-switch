@@ -16,7 +16,7 @@ trait TaskWriter[T] extends EventsourcedWriter[Long, Unit] with ActorLogging {
   protected implicit val ec = context.dispatcher
 
   // Batch models during event processing.
-  private var batch: Vector[T] = Vector.empty
+  private var cache: Vector[T] = Vector.empty
 
   // Event replay back-pressure: replay is suspended after a set number of events and a write is triggered.
   // This is necessary when writing to the database is slower than replaying from the eventLog (which is usually the case).
@@ -28,19 +28,19 @@ trait TaskWriter[T] extends EventsourcedWriter[Long, Unit] with ActorLogging {
   // Indicates the start position for further reads from the event log.
   override def readSuccess(result: Long): Option[Long] = Some(result + 1L)
 
-  // Asynchronously writes the batch and sequence number of the last processed event to the database.
+  // Asynchronously writes the cache and sequence number of the last processed event to the database.
   def write(): Future[Unit] = {
     val nr = lastSequenceNr
     val res = for {
-      _ ← Future.sequence(batch.map(save))
+      _ ← Future.sequence(cache.map(write))
       _ ← WriteProgress.write(writerId, nr)
     } yield ()
-    batch = Vector.empty // clear so that events can be processed while the write is in progress.
+    cache = Vector.empty // clear so that events can be processed while the write is in progress.
     res
   }
 
-  // Add a model to the batch collection
-  def cache(t: T): Unit = batch = batch :+ t
+  // Add a model to the cache collection
+  def batch(t: T): Unit = cache = cache :+ t
 
   // Generic future error handler function
   def noTasks: PartialFunction[Throwable, Future[Tasks]] = {
@@ -50,5 +50,5 @@ trait TaskWriter[T] extends EventsourcedWriter[Long, Unit] with ActorLogging {
   }
 
   // Save a model to a DB
-  def save(t: T): Future[Unit]
+  def write(t: T): Future[Unit]
 }
