@@ -15,7 +15,7 @@ final class TaskExpirationProcessor(val id: String, val eventLog: ActorRef, val 
   }
 
   // Get the current day, week of year and month time windows
-  private def windows: Seq[String] = Seq(format("yyyy-MM-dd"), format("yyyy-ww"), format("yyyy-MM"))
+  private def windows: Seq[String] = Seq(format("yyyy-MM-dd"), format("yyyy-'week'-ww"), format("yyyy-MM"))
 
   // Create a tagged expiration set when a task expires
   def processEvent = {
