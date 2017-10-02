@@ -1,2 +1,3 @@
 drop KEYSPACE deadman;
-drop KEYSPACE deadman_event_log;
+drop KEYSPACE deadman_loc1;
+drop KEYSPACE deadman_loc2;
