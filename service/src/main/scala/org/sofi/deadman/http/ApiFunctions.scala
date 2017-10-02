@@ -9,10 +9,16 @@ import scala.concurrent.{ ExecutionContext, Future }
 
 final class ApiFunctions(commandManager: ActorRef, queryManager: ActorRef)(implicit val ec: ExecutionContext, val timeout: Timeout) {
 
+  // Helper function for parsing `ttw` values
+  private def parseLongSeq(ttw: Option[String]): Seq[Long] = {
+    val maybeWarnings: Option[Seq[Long]] = ttw.map(_.split(",").map(_.toLong))
+    maybeWarnings.getOrElse(Seq.empty)
+  }
+
   // Schedule a task
-  def scheduleTask(key: String, agg: String, ent: String, ttw: String, ttl: Long, tags: String, ts: Option[Long]) =
+  def scheduleTask(key: String, agg: String, ent: String, ttl: Long, ttw: Option[String], tags: Option[String], ts: Option[Long]) =
     commandManager.ask(
-      ScheduleTask(key, agg, ent, ttl, ttw.split(',').map(_.toLong), tags.split(','), ts)
+      ScheduleTask(key, agg, ent, ttl, parseLongSeq(ttw), tags.getOrElse("").split(","), ts)
     ).mapTo[CommandResponse]
 
   // Complete a task
