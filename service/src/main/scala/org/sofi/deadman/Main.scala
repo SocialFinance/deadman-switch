@@ -34,7 +34,7 @@ object Main extends App with Server {
 
   // If indicated, start interactive CLI
   if ("cli".equalsIgnoreCase(mode)) {
-    system.actorOf(CommandLine.props(location.commandManager, location.queryManager))
+    system.actorOf(CommandLine.props(location.commandManager, location.queryManager).withDispatcher("dispatchers.cli"))
   }
 }
 

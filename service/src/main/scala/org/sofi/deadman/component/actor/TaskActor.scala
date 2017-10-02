@@ -62,8 +62,10 @@ final class TaskActor(val aggregate: String, val replica: String, val eventLog: 
 
   // Create persistent events when a command is received
   def onCommand: Receive = {
-    case ScheduleTask(key, `aggregate`, entity, ttl, ttw, tags) ⇒
-      persist(Task(key, aggregate, entity, System.currentTimeMillis(), ttl, ttw, tags)) {
+    case ScheduleTask(key, `aggregate`, entity, ttl, ttw, tags, maybeTs) ⇒
+      val now = System.currentTimeMillis()
+      val ts = maybeTs.map(t ⇒ if (t < now) now else t).getOrElse(now)
+      persist(Task(key, aggregate, entity, ts, ttl, ttw, tags)) {
         case Success(_) ⇒ sender() ! CommandResponse("", SUCCESS)
         case Failure(err) ⇒ sender() ! CommandResponse(err.getMessage, ERROR)
       }

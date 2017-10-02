@@ -11,6 +11,7 @@ message ScheduleTask {
     required uint64 ttl = 4;       // Task time to live in millis
     repeated uint64 ttw = 5;       // Task time until warning
     repeated string tags = 6;      // Task tags
+    optional uint64 ts = 7;        // Start timestamp (if not provided, current timestamp will be used)
 }
 
 message CompleteTask {

@@ -9,6 +9,9 @@ import scala.util.control.NonFatal
 
 trait TaskWriter[T] extends EventsourcedWriter[Long, Unit] with ActorLogging {
 
+  // Pre-calculated empty task list
+  private final val emptyTasks = Tasks(Seq.empty)
+
   // The ID of this writer
   def writerId: String
 
@@ -46,7 +49,7 @@ trait TaskWriter[T] extends EventsourcedWriter[Long, Unit] with ActorLogging {
   def noTasks: PartialFunction[Throwable, Future[Tasks]] = {
     case NonFatal(t) ⇒
       log.warning("Task query exception", t)
-      Future.successful(Tasks(Seq.empty))
+      Future.successful(emptyTasks)
   }
 
   // Save a model to a DB

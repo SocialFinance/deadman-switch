@@ -10,9 +10,9 @@ import scala.concurrent.{ ExecutionContext, Future }
 final class ApiFunctions(commandManager: ActorRef, queryManager: ActorRef)(implicit val ec: ExecutionContext, val timeout: Timeout) {
 
   // Schedule a task
-  def scheduleTask(key: String, agg: String, ent: String, ttw: String, ttl: Long, tags: String): Future[CommandResponse] =
+  def scheduleTask(key: String, agg: String, ent: String, ttw: String, ttl: Long, tags: String, ts: Option[Long]) =
     commandManager.ask(
-      ScheduleTask(key, agg, ent, ttl, ttw.split(',').map(_.toLong), tags.split(','))
+      ScheduleTask(key, agg, ent, ttl, ttw.split(',').map(_.toLong), tags.split(','), ts)
     ).mapTo[CommandResponse]
 
   // Complete a task
