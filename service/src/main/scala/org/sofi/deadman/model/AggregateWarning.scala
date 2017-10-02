@@ -18,7 +18,7 @@ object AggregateWarning {
 
   // Syntactic sugar on warning model
   implicit class ComplianceWarningOps(val w: AggregateWarning) extends AnyVal {
-    def asTask: Task = Task(w.key, w.aggregate, w.entity, w.creation, w.creation, Seq(w.ttw), w.tags.split(","))
+    def asTask: Task = Task(w.key, w.aggregate, w.entity, w.creation, w.ttl, Seq(w.ttw), w.tags.split(","))
     def save(implicit ec: ExecutionContext): Future[Unit] = AggregateWarning.save(w)
   }
 
