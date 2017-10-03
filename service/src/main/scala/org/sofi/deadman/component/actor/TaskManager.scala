@@ -5,7 +5,7 @@ import com.rbmhtechnology.eventuate._
 import org.sofi.deadman.messages.command._
 import org.sofi.deadman.messages.event._
 
-final class TaskManager(val id: String, val eventLog: ActorRef) extends EventsourcedActor {
+final class TaskManager(val id: String, val eventLog: ActorRef) extends EventsourcedActor with ActorLogging {
 
   // Actor registry
   private var registry: Map[String, ActorRef] = Map.empty
@@ -15,6 +15,9 @@ final class TaskManager(val id: String, val eventLog: ActorRef) extends Eventsou
     registry.get(aggregate) match {
       case Some(actor) ⇒ actor
       case None ⇒
+        if (recovering) {
+          log.debug("Recovering actor for aggregate {}", aggregate)
+        }
         registry = registry + (aggregate -> context.actorOf(TaskActor.props(aggregate, id, eventLog)))
         registry(aggregate)
     }

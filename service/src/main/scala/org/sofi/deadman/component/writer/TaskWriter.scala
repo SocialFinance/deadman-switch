@@ -23,7 +23,7 @@ trait TaskWriter[T] extends EventsourcedWriter[Long, Unit] with ActorLogging {
 
   // Event replay back-pressure: replay is suspended after a set number of events and a write is triggered.
   // This is necessary when writing to the database is slower than replaying from the eventLog (which is usually the case).
-  override def replayBatchSize: Int = 1024
+  override def replayBatchSize: Int = 5120
 
   // Reads the sequence number of the last update; called only once after writer start or restart.
   def read(): Future[Long] = WriteProgress.read(writerId)
