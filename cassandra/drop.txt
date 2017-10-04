@@ -1,3 +1,4 @@
 drop KEYSPACE deadman;
 drop KEYSPACE deadman_loc1;
 drop KEYSPACE deadman_loc2;
+drop KEYSPACE deadman_loc3;

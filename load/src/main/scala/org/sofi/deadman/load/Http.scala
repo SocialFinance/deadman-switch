@@ -8,6 +8,9 @@ import scala.util.Try
 
 object Http {
 
+  // OK status
+  val OK = HttpStatus.SC_OK
+
   // Captures desired response fields
   final case class HttpResp(status: Int, body: String)
 
