@@ -6,7 +6,7 @@ object Main extends App {
   val x2 = 10800000L // 3 hr
   val x3 = 14400000L // 4 hr
   val ports = Array(9876, 9877, 9878) // Spread requests across all 3 service locations
-  (1 to 10).foreach { a ⇒
+  (1 to 10000).foreach { a ⇒
     val e = a - 1
     val s = System.currentTimeMillis() // Use a base start timestamp for each aggregate task
     (1 to 100).foreach { j ⇒
