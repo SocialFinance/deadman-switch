@@ -31,5 +31,6 @@ final class EntityWarningWriter(val id: String, val eventLog: ActorRef) extends 
 
 object EntityWarningWriter {
   def name(id: String): String = s"$id-ent-warning-writer"
-  def props(id: String, eventLog: ActorRef): Props = Props(new EntityWarningWriter(id, eventLog))
+  def props(id: String, eventLog: ActorRef): Props =
+    Props(new EntityWarningWriter(id, eventLog)).withDispatcher("dispatchers.writer")
 }

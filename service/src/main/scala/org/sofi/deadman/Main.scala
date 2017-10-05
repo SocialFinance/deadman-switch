@@ -18,7 +18,7 @@ object Main extends App with Server {
   val mode = Try(args(1)).getOrElse("")
 
   // Boot actor system
-  implicit val system = ActorSystem("deadman-switch-actor-system", ConfigFactory.load(id))
+  implicit val system = ActorSystem("deadman-switch-actor-system", ConfigFactory.load(id).resolve())
   implicit val executionContext = system.dispatcher
 
   // Init actor API timeout

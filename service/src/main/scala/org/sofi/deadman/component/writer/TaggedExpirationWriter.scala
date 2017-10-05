@@ -33,5 +33,6 @@ final class TaggedExpirationWriter(val id: String, val eventLog: ActorRef) exten
 
 object TaggedExpirationWriter {
   def name(id: String): String = s"$id-tagged-expiration-writer"
-  def props(id: String, eventLog: ActorRef): Props = Props(new TaggedExpirationWriter(id, eventLog))
+  def props(id: String, eventLog: ActorRef): Props =
+    Props(new TaggedExpirationWriter(id, eventLog)).withDispatcher("dispatchers.writer")
 }

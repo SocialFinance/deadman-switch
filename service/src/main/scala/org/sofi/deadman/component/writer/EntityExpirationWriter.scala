@@ -31,5 +31,6 @@ final class EntityExpirationWriter(val id: String, val eventLog: ActorRef) exten
 
 object EntityExpirationWriter {
   def name(id: String): String = s"$id-ent-expiration-writer"
-  def props(id: String, eventLog: ActorRef): Props = Props(new EntityExpirationWriter(id, eventLog))
+  def props(id: String, eventLog: ActorRef): Props =
+    Props(new EntityExpirationWriter(id, eventLog)).withDispatcher("dispatchers.writer")
 }

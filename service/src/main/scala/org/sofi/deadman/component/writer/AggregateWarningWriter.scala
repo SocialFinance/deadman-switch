@@ -31,5 +31,6 @@ final class AggregateWarningWriter(val id: String, val eventLog: ActorRef) exten
 
 object AggregateWarningWriter {
   def name(id: String): String = s"$id-agg-warning-writer"
-  def props(id: String, eventLog: ActorRef): Props = Props(new AggregateWarningWriter(id, eventLog))
+  def props(id: String, eventLog: ActorRef): Props =
+    Props(new AggregateWarningWriter(id, eventLog)).withDispatcher("dispatchers.writer")
 }

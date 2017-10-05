@@ -31,5 +31,6 @@ final class AggregateExpirationWriter(val id: String, val eventLog: ActorRef) ex
 
 object AggregateExpirationWriter {
   def name(id: String): String = s"$id-agg-expiration-writer"
-  def props(id: String, eventLog: ActorRef): Props = Props(new AggregateExpirationWriter(id, eventLog))
+  def props(id: String, eventLog: ActorRef): Props =
+    Props(new AggregateExpirationWriter(id, eventLog)).withDispatcher("dispatchers.writer")
 }
