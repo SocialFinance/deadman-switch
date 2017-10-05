@@ -6,21 +6,17 @@ import "event.proto";
 
 // Queries ----------------------------------------------------------------------------------------
 
-message GetTasks {
-    enum ViewType {
-        AGGREGATE = 1;
-        ENTITY = 2;
-        KEY = 3;
-    }
-    required ViewType view = 1;    // The view to query
-    optional string aggregate = 2; // Aggregate ID (eg application)
-    optional string entity = 3;    // Entity ID (eg customer)
-    optional string key = 4;       // Task key
+enum QueryType {
+    AGGREGATE = 1;                    // Query on aggregate ID
+    ENTITY = 2;                       // Query on entity ID
+    KEY = 3;                          // Query on key
 }
 
-enum QueryType {
-    AGGREGATE = 1;
-    ENTITY = 2;
+message GetTasks {
+    required QueryType queryType = 1; // The writer to query
+    optional string aggregate = 2;    // Aggregate ID (eg application)
+    optional string entity = 3;       // Entity ID (eg customer)
+    optional string key = 4;          // Task key
 }
 
 message GetExpirations {
@@ -36,10 +32,16 @@ message GetWarnings {
 }
 
 message GetTags {
-    required string tag = 1;
-    required string window = 2;
-    optional uint64 start = 3;
-    optional uint64 end = 4;
+    required string tag = 1;          // Tag name
+    required string window = 2;       // Time window
+    optional uint64 start = 3;        // Time range start
+    optional uint64 end = 4;          // Time range end
+}
+
+message GetCount {
+    required QueryType queryType = 1; // The counter to query
+    optional string aggregate = 2;    // Aggregate ID (eg application)
+    optional string entity = 3;       // Entity ID (eg customer)
 }
 
 // Query Responses --------------------------------------------------------------------------------

@@ -1,7 +1,7 @@
 package org.sofi.deadman.component.view
 
 import akka.actor._
-import org.sofi.deadman.messages.query._, GetTasks.ViewType._
+import org.sofi.deadman.messages.query._, QueryType._
 
 final class ViewManager(val id: String, val eventLog: ActorRef) extends Actor with ActorLogging {
 
@@ -16,7 +16,7 @@ final class ViewManager(val id: String, val eventLog: ActorRef) extends Actor wi
 
   // Forward queries to views
   def receive: Receive = {
-    case query: GetTasks ⇒ query.view match {
+    case query: GetTasks ⇒ query.queryType match {
       case AGGREGATE ⇒ aggregateView forward query
       case ENTITY ⇒ entityView forward query
       case KEY ⇒ keyView forward query

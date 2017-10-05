@@ -10,15 +10,21 @@ import scala.concurrent.{ ExecutionContext, Future }
 final class ApiFunctions(commandManager: ActorRef, queryManager: ActorRef)(implicit val ec: ExecutionContext, val timeout: Timeout) {
 
   // Helper function for parsing `ttw` values
-  private def parseLongSeq(ttw: Option[String]): Seq[Long] = {
+  private def parseTTW(ttw: Option[String]): Seq[Long] = {
     val maybeWarnings: Option[Seq[Long]] = ttw.map(_.split(",").map(_.toLong))
     maybeWarnings.getOrElse(Seq.empty)
+  }
+
+  // Helper function for parsing `tag` values
+  private def parseTags(tags: Option[String]): Seq[String] = {
+    val seq: Option[Seq[String]] = tags.map(_.split(",").toSeq)
+    seq.getOrElse(Seq.empty)
   }
 
   // Schedule a task
   def scheduleTask(key: String, agg: String, ent: String, ttl: Long, ttw: Option[String], tags: Option[String], ts: Option[Long]) =
     commandManager.ask(
-      ScheduleTask(key, agg, ent, ttl, parseLongSeq(ttw), tags.getOrElse("").split(","), ts)
+      ScheduleTask(key, agg, ent, ttl, parseTTW(ttw), parseTags(tags), ts)
     ).mapTo[CommandResponse]
 
   // Complete a task
@@ -30,13 +36,13 @@ final class ApiFunctions(commandManager: ActorRef, queryManager: ActorRef)(impli
   // Get all active tasks for the given aggregate ID
   def queryAggregate(id: String): Future[Tasks] =
     queryManager.ask(
-      GetTasks(view = GetTasks.ViewType.AGGREGATE, aggregate = Some(id))
+      GetTasks(QueryType.AGGREGATE, aggregate = Some(id))
     ).mapTo[Tasks]
 
   // Get all active tasks for the given entity ID
   def queryEntity(id: String): Future[Tasks] =
     queryManager.ask(
-      GetTasks(view = GetTasks.ViewType.ENTITY, entity = Some(id))
+      GetTasks(QueryType.ENTITY, entity = Some(id))
     ).mapTo[Tasks]
 
   // Get all expired tasks for the given aggregate ID

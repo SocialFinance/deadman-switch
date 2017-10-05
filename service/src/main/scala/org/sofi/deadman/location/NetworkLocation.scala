@@ -8,6 +8,7 @@ import org.sofi.deadman.component.processor._
 import org.sofi.deadman.component.query._
 import org.sofi.deadman.component.view._
 import org.sofi.deadman.component.writer._
+import org.sofi.deadman.component.counter._
 import scala.collection.JavaConverters._
 
 final class NetworkLocation(val id: String)(implicit system: ActorSystem) {
@@ -34,6 +35,7 @@ final class NetworkLocation(val id: String)(implicit system: ActorSystem) {
   system.actorOf(TaskExpirationProcessor.props(TaskExpirationProcessor.name(id), eventLog, targetLog))
   private val writerManager = system.actorOf(WriterManager.props(id, eventLog, targetLog))
   private val viewManager = system.actorOf(ViewManager.props(id, eventLog))
-  val queryManager = system.actorOf(QueryManager.props(viewManager, writerManager))
+  private val counterManager = system.actorOf(CounterManager.props(id, eventLog))
+  val queryManager = system.actorOf(QueryManager.props(viewManager, writerManager, counterManager))
   val commandManager = system.actorOf(TaskManager.props(TaskManager.name(id), eventLog))
 }

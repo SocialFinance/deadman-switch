@@ -58,6 +58,10 @@ private final class CommandLine(val commandManager: ActorRef, val queryManager: 
       }
       prompt()
 
+    case count: Long ⇒
+      log.info(s"Found $count tasks")
+      prompt()
+
     // Process CLI and send commands and/or queries
     case line: String ⇒ line.trim.split(' ').toList match {
 
@@ -72,13 +76,13 @@ private final class CommandLine(val commandManager: ActorRef, val queryManager: 
       // Query scheduled tasks
 
       case "query" :: "scheduled" :: "aggregate" :: id :: Nil ⇒
-        queryManager ! GetTasks(GetTasks.ViewType.AGGREGATE, aggregate = Some(id))
+        queryManager ! GetTasks(QueryType.AGGREGATE, aggregate = Some(id))
 
       case "query" :: "scheduled" :: "entity" :: id :: Nil ⇒
-        queryManager ! GetTasks(GetTasks.ViewType.ENTITY, entity = Some(id))
+        queryManager ! GetTasks(QueryType.ENTITY, entity = Some(id))
 
       case "query" :: "scheduled" :: "key" :: value :: Nil ⇒
-        queryManager ! GetTasks(GetTasks.ViewType.KEY, key = Some(value))
+        queryManager ! GetTasks(QueryType.KEY, key = Some(value))
 
       // Query expired tasks
 
@@ -98,6 +102,14 @@ private final class CommandLine(val commandManager: ActorRef, val queryManager: 
 
       case "query" :: "warnings" :: "entity" :: id :: Nil ⇒
         queryManager ! GetWarnings(QueryType.ENTITY, entity = Some(id))
+
+      // Query for task counts
+
+      case "count" :: "aggregate" :: id :: Nil ⇒
+        queryManager ! GetCount(QueryType.AGGREGATE, aggregate = Some(id))
+
+      case "count" :: "entity" :: id :: Nil ⇒
+        queryManager ! GetCount(QueryType.ENTITY, entity = Some(id))
 
       case _ ⇒
         prompt()
