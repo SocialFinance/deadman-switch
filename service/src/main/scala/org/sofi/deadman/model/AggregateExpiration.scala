@@ -16,7 +16,7 @@ object AggregateExpiration {
   import org.sofi.deadman.storage._, db._
 
   // Syntactic sugar on violation model
-  implicit class ViolationOps(val e: AggregateExpiration) extends AnyVal {
+  implicit class AggregateExpirationOps(val e: AggregateExpiration) extends AnyVal {
     def asTask: Task = Task(e.key, e.aggregate, e.entity, e.creation, e.ttl, Seq.empty, e.tags.split(","))
     def save(implicit ec: ExecutionContext): Future[Unit] = AggregateExpiration.save(e)
   }

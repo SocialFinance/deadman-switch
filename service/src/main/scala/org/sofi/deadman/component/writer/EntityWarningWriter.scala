@@ -12,7 +12,7 @@ final class EntityWarningWriter(val id: String, val eventLog: ActorRef) extends 
   val writerId = "EntityWarningWriter"
 
   // Entity query for task warnings
-  override def onCommand = {
+  def onCommand = {
     case q: GetWarnings ⇒
       val _ = EntityWarning.select(q.entity.getOrElse("")).map { result ⇒
         Tasks(result.map(_.asTask))

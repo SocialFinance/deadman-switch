@@ -18,7 +18,7 @@ object TagExpiration {
   import org.sofi.deadman.storage._, db._
 
   // Syntactic sugar on a tagged violation model
-  implicit class TaggedViolationOps(val e: TagExpiration) extends AnyVal {
+  implicit class TagExpirationOps(val e: TagExpiration) extends AnyVal {
     def asTask: Task = Task(e.key, e.aggregate, e.entity, e.creation, e.ttl, Seq.empty, e.tags.split(","))
     def save(implicit ec: ExecutionContext): Future[Unit] = TagExpiration.save(e)
   }

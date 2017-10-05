@@ -12,7 +12,7 @@ final class TaggedExpirationWriter(val id: String, val eventLog: ActorRef) exten
   val writerId = "TaggedExpirationWriter"
 
   // Query C* for tagged expirations
-  override def onCommand = {
+  def onCommand = {
     case q: GetTags ⇒
       val start = q.start.getOrElse(Long.MinValue)
       val end = q.end.getOrElse(Long.MaxValue)

@@ -58,7 +58,7 @@ private final class CommandLine(val commandManager: ActorRef, val queryManager: 
       }
       prompt()
 
-    case count: Long ⇒
+    case Count(count) ⇒
       log.info(s"Found $count tasks")
       prompt()
 

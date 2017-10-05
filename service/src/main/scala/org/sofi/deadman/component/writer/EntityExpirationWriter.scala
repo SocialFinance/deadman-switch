@@ -12,7 +12,7 @@ final class EntityExpirationWriter(val id: String, val eventLog: ActorRef) exten
   val writerId = "EntityExpirationWriter"
 
   // Entity query for task expiration
-  override def onCommand = {
+  def onCommand = {
     case q: GetExpirations ⇒
       val _ = EntityExpiration.select(q.entity.getOrElse("")).map { result ⇒
         Tasks(result.map(_.asTask))

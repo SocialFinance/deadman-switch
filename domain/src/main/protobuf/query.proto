@@ -49,3 +49,7 @@ message GetCount {
 message Tasks {
     repeated Task tasks = 1;
 }
+
+message Count {
+    required uint64 count = 1;
+}

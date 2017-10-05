@@ -12,7 +12,7 @@ final class AggregateExpirationWriter(val id: String, val eventLog: ActorRef) ex
   val writerId = "AggregateExpirationWriter"
 
   // Query for expired tasks
-  override def onCommand: Receive = {
+  def onCommand: Receive = {
     case q: GetExpirations ⇒
       val _ = AggregateExpiration.select(q.aggregate.getOrElse("")).map { result ⇒
         Tasks(result.map(_.asTask))

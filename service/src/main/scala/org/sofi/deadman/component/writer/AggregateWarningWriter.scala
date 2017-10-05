@@ -12,7 +12,7 @@ final class AggregateWarningWriter(val id: String, val eventLog: ActorRef) exten
   val writerId = "AggregateWarningWriter"
 
   // Aggregate query for task warnings
-  override def onCommand: Receive = {
+  def onCommand: Receive = {
     case q: GetWarnings ⇒
       val _ = AggregateWarning.select(q.aggregate.getOrElse("")).map { result ⇒
         Tasks(result.map(_.asTask))
