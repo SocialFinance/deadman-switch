@@ -36,10 +36,10 @@ object EntityWarning {
       quote {
         query[EntityWarning]
           .filter(_.entity == lift(w.entity))
+          .filter(_.aggregate == lift(w.aggregate))
           .filter(_.key == lift(w.key))
           .filter(_.ttw == lift(w.ttw))
           .update(
-            _.aggregate -> lift(w.aggregate),
             _.ttl -> lift(w.ttl),
             _.creation -> lift(w.creation),
             _.warning -> lift(w.warning),

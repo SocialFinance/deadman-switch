@@ -35,9 +35,9 @@ object EntityExpiration {
       quote {
         query[EntityExpiration]
           .filter(_.entity == lift(w.entity))
+          .filter(_.aggregate == lift(w.aggregate))
           .filter(_.key == lift(w.key))
           .update(
-            _.aggregate -> lift(w.aggregate),
             _.ttl -> lift(w.ttl),
             _.creation -> lift(w.creation),
             _.expiration -> lift(w.expiration),

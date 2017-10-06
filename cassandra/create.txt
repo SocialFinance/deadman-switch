@@ -25,7 +25,7 @@ CREATE TABLE aggregate_warning (
   creation BIGINT,
   warning BIGINT,
   tags TEXT,
-  PRIMARY KEY (aggregate, key, ttw)
+  PRIMARY KEY (aggregate, entity, key, ttw)
 );
 
 CREATE TABLE entity_warning (
@@ -37,7 +37,7 @@ CREATE TABLE entity_warning (
   creation BIGINT,
   warning BIGINT,
   tags TEXT,
-  PRIMARY KEY (entity, key, ttw)
+  PRIMARY KEY (entity, aggregate, key, ttw)
 );
 
 CREATE TABLE aggregate_expiration (
@@ -48,7 +48,7 @@ CREATE TABLE aggregate_expiration (
   creation BIGINT,
   expiration BIGINT,
   tags TEXT,
-  PRIMARY KEY (aggregate, key)
+  PRIMARY KEY (aggregate, entity, key)
 );
 
 CREATE TABLE entity_expiration (
@@ -59,7 +59,7 @@ CREATE TABLE entity_expiration (
   creation BIGINT,
   expiration BIGINT,
   tags TEXT,
-  PRIMARY KEY (entity, key)
+  PRIMARY KEY (entity, aggregate, key)
 );
 
 CREATE TABLE tag_expiration (

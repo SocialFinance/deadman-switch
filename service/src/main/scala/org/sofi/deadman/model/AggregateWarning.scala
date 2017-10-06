@@ -36,10 +36,10 @@ object AggregateWarning {
       quote {
         query[AggregateWarning]
           .filter(_.aggregate == lift(w.aggregate))
+          .filter(_.entity == lift(w.entity))
           .filter(_.key == lift(w.key))
           .filter(_.ttw == lift(w.ttw))
           .update(
-            _.entity -> lift(w.entity),
             _.ttl -> lift(w.ttl),
             _.creation -> lift(w.creation),
             _.warning -> lift(w.warning),
