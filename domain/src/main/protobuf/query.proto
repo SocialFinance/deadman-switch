@@ -42,6 +42,7 @@ message GetCount {
     required QueryType queryType = 1; // The counter to query
     optional string aggregate = 2;    // Aggregate ID (eg application)
     optional string entity = 3;       // Entity ID (eg customer)
+    optional string key = 4;          // Task key
 }
 
 // Query Responses --------------------------------------------------------------------------------

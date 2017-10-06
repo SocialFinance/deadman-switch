@@ -111,6 +111,9 @@ private final class CommandLine(val commandManager: ActorRef, val queryManager: 
       case "count" :: "entity" :: id :: Nil ⇒
         queryManager ! GetCount(QueryType.ENTITY, entity = Some(id))
 
+      case "count" :: "key" :: value :: Nil ⇒
+        queryManager ! GetCount(QueryType.KEY, key = Some(value))
+
       case _ ⇒
         prompt()
     }

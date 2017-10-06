@@ -18,6 +18,7 @@ package object query {
     def queryKey: String =
       gc.queryType match {
         case QueryType.ENTITY ⇒ gc.entity.getOrElse("")
+        case QueryType.KEY ⇒ gc.key.getOrElse("")
         case _ ⇒ gc.aggregate.getOrElse("")
       }
   }

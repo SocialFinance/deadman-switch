@@ -11,11 +11,15 @@ final class CounterManager(val id: String, val eventLog: ActorRef) extends Actor
   // Entity counter reference
   private val entCounter = context.actorOf(EntityCounter.props(EntityCounter.name(id), eventLog))
 
+  // Key counter reference
+  private val keyCounter = context.actorOf(KeyCounter.props(KeyCounter.name(id), eventLog))
+
   // Forward counter query to the correct actor
   override def receive = {
     case query: GetCount ⇒
       query.queryType match {
         case QueryType.ENTITY ⇒ entCounter forward query
+        case QueryType.KEY ⇒ keyCounter forward query
         case _ ⇒ aggCounter forward query
       }
   }
