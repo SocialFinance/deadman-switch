@@ -80,6 +80,17 @@ class HttpRouter(implicit api: ApiFunctions) extends JsonProtocol {
       }
     }
 
+  private val aggCount =
+    pathPrefix("deadman" / "api" / "v1" / "aggregate" / Segment / "count") { id ⇒
+      pathEndOrSingleSlash {
+        get {
+          onSuccess(queryAggregateCount(id)) { count ⇒
+            complete(count)
+          }
+        }
+      }
+    }
+
   private val entExpirations =
     pathPrefix("deadman" / "api" / "v1" / "entity" / Segment / "expirations") { id ⇒
       pathEndOrSingleSlash {
@@ -102,6 +113,17 @@ class HttpRouter(implicit api: ApiFunctions) extends JsonProtocol {
       }
     }
 
+  private val entCount =
+    pathPrefix("deadman" / "api" / "v1" / "entity" / Segment / "count") { id ⇒
+      pathEndOrSingleSlash {
+        get {
+          onSuccess(queryEntityCount(id)) { count ⇒
+            complete(count)
+          }
+        }
+      }
+    }
+
   private val tags =
     pathPrefix("deadman" / "api" / "v1" / "tag" / Segment) { tag ⇒
       path(Segment) { window =>
@@ -115,7 +137,19 @@ class HttpRouter(implicit api: ApiFunctions) extends JsonProtocol {
       }
     }
 
-  val routes = schedule ~ completed ~ aggregate ~ entity ~ aggExpirations ~ aggWarnings ~ entExpirations ~ entWarnings ~ tags
+  // Combine all endpoints
+  val routes =
+    schedule ~
+    completed ~
+    aggregate ~
+    entity ~
+    aggExpirations ~
+    aggWarnings ~
+    aggCount ~
+    entExpirations ~
+    entWarnings ~
+    entCount ~
+    tags
 
   // format: ON
 }

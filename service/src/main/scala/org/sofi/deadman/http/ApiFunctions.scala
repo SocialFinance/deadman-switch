@@ -57,6 +57,12 @@ final class ApiFunctions(commandManager: ActorRef, queryManager: ActorRef)(impli
       GetWarnings(QueryType.AGGREGATE, aggregate = Some(id))
     ).mapTo[Tasks]
 
+  // Count all scheduled tasks for the given aggregate ID
+  def queryAggregateCount(id: String): Future[Count] =
+    queryManager.ask(
+      GetCount(QueryType.AGGREGATE, aggregate = Some(id))
+    ).mapTo[Count]
+
   // Get all expired tasks for the given entity ID
   def queryEntityExpirations(id: String): Future[Tasks] =
     queryManager.ask(
@@ -68,6 +74,12 @@ final class ApiFunctions(commandManager: ActorRef, queryManager: ActorRef)(impli
     queryManager.ask(
       GetWarnings(QueryType.ENTITY, entity = Some(id))
     ).mapTo[Tasks]
+
+  // Count all task warnings for the given entity ID
+  def queryEntityCount(id: String): Future[Count] =
+    queryManager.ask(
+      GetCount(QueryType.ENTITY, entity = Some(id))
+    ).mapTo[Count]
 
   // Get all expired tasks with the given tag for a time window
   def queryExpiredTag(tag: String, window: String) =
