@@ -19,17 +19,10 @@ trait EventCounter extends EventsourcedView with ActorLogging {
         registry(key)
     }
 
-  // Determine query key field
-  def queryKey(q: GetCount): String =
-    q.queryType match {
-      case QueryType.ENTITY ⇒ q.entity.getOrElse("")
-      case _ ⇒ q.aggregate.getOrElse("")
-    }
-
   // Get scheduled task counts
   def onCommand = {
-    case q: GetCount ⇒
-      actorFor(queryKey(q)) forward q
+    case query: GetCount ⇒
+      actorFor(query.queryKey) forward query
   }
 
   // Update counter service

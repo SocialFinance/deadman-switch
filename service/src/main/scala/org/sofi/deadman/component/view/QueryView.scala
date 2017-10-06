@@ -2,7 +2,7 @@ package org.sofi.deadman.component.view
 
 import com.rbmhtechnology.eventuate._
 import org.sofi.deadman.messages.event._
-import org.sofi.deadman.messages.query._, QueryType._
+import org.sofi.deadman.messages.query._
 
 private[view] trait QueryView extends EventsourcedView {
 
@@ -15,19 +15,10 @@ private[view] trait QueryView extends EventsourcedView {
   // Query function
   private def query(key: String): Seq[Task] = state.getOrElse(key, Set.empty).toSeq.sorted(orderByTs)
 
-  // Determine the query type and return the appropriate field
-  private def queryKey(gt: GetTasks): Option[String] =
-    gt.queryType match {
-      case AGGREGATE ⇒ gt.aggregate
-      case ENTITY ⇒ gt.entity
-      case KEY ⇒ gt.key
-      case _ ⇒ gt.aggregate
-    }
-
   // Query the view state
   def onCommand: Receive = {
     case gt: GetTasks ⇒
-      sender() ! Tasks(queryKey(gt).map(query).getOrElse(Seq.empty))
+      sender() ! Tasks(gt.queryKey.map(query).getOrElse(Seq.empty))
   }
 
   // Update the view state

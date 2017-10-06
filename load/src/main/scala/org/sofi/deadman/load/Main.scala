@@ -2,7 +2,7 @@ package org.sofi.deadman.load
 
 // Load 1 million tasks into the deadman switch service
 object Main extends App {
-  val x1 = 7200000L  // 2 hr
+  val x1 = 7200000L // 2 hr
   val x2 = 10800000L // 3 hr
   val x3 = 14400000L // 4 hr
   val ports = Array(9876, 9877, 9878) // Spread requests across all 3 service locations
