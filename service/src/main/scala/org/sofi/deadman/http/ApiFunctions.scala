@@ -39,12 +39,6 @@ final class ApiFunctions(commandManager: ActorRef, queryManager: ActorRef)(impli
       GetTasks(QueryType.AGGREGATE, aggregate = Some(id))
     ).mapTo[Tasks]
 
-  // Get all active tasks for the given entity ID
-  def queryEntity(id: String): Future[Tasks] =
-    queryManager.ask(
-      GetTasks(QueryType.ENTITY, entity = Some(id))
-    ).mapTo[Tasks]
-
   // Get all expired tasks for the given aggregate ID
   def queryAggregateExpirations(id: String): Future[Tasks] =
     queryManager.ask(
@@ -63,6 +57,12 @@ final class ApiFunctions(commandManager: ActorRef, queryManager: ActorRef)(impli
       GetCount(QueryType.AGGREGATE, aggregate = Some(id))
     ).mapTo[Count]
 
+  // Get all active tasks for the given entity ID
+  def queryEntity(id: String): Future[Tasks] =
+    queryManager.ask(
+      GetTasks(QueryType.ENTITY, entity = Some(id))
+    ).mapTo[Tasks]
+
   // Get all expired tasks for the given entity ID
   def queryEntityExpirations(id: String): Future[Tasks] =
     queryManager.ask(
@@ -79,6 +79,18 @@ final class ApiFunctions(commandManager: ActorRef, queryManager: ActorRef)(impli
   def queryEntityCount(id: String): Future[Count] =
     queryManager.ask(
       GetCount(QueryType.ENTITY, entity = Some(id))
+    ).mapTo[Count]
+
+  // Get all active tasks for the given key
+  def queryKey(value: String): Future[Tasks] =
+    queryManager.ask(
+      GetTasks(QueryType.KEY, key = Some(value))
+    ).mapTo[Tasks]
+
+  // Count all active tasks for the given key
+  def queryKeyCount(value: String): Future[Count] =
+    queryManager.ask(
+      GetCount(QueryType.KEY, key = Some(value))
     ).mapTo[Count]
 
   // Get all expired tasks with the given tag for a time window

@@ -57,17 +57,6 @@ class HttpRouter(implicit api: ApiFunctions) extends JsonProtocol {
       }
     }
 
-  private val entity =
-    pathPrefix("deadman" / "api" / "v1" / "entity" / Segment) { id ⇒
-      pathEndOrSingleSlash {
-        get {
-          onSuccess(queryEntity(id)) { tasks ⇒
-            complete(tasks)
-          }
-        }
-      }
-    }
-
   private val aggExpirations =
     pathPrefix("deadman" / "api" / "v1" / "aggregate" / Segment / "expirations") { id ⇒
       pathEndOrSingleSlash {
@@ -96,6 +85,17 @@ class HttpRouter(implicit api: ApiFunctions) extends JsonProtocol {
         get {
           onSuccess(queryAggregateCount(id)) { count ⇒
             complete(count)
+          }
+        }
+      }
+    }
+
+  private val entity =
+    pathPrefix("deadman" / "api" / "v1" / "entity" / Segment) { id ⇒
+      pathEndOrSingleSlash {
+        get {
+          onSuccess(queryEntity(id)) { tasks ⇒
+            complete(tasks)
           }
         }
       }
@@ -134,6 +134,28 @@ class HttpRouter(implicit api: ApiFunctions) extends JsonProtocol {
       }
     }
 
+  private val key =
+    pathPrefix("deadman" / "api" / "v1" / "key" / Segment) { key ⇒
+      pathEndOrSingleSlash {
+        get {
+          onSuccess(queryKey(key)) { tasks ⇒
+            complete(tasks)
+          }
+        }
+      }
+    }
+
+  private val keyCount =
+    pathPrefix("deadman" / "api" / "v1" / "key" / Segment / "count") { key ⇒
+      pathEndOrSingleSlash {
+        get {
+          onSuccess(queryKeyCount(key)) { count ⇒
+            complete(count)
+          }
+        }
+      }
+    }
+
   private val tags =
     pathPrefix("deadman" / "api" / "v1" / "tag" / Segment) { tag ⇒
       path(Segment) { window =>
@@ -152,13 +174,15 @@ class HttpRouter(implicit api: ApiFunctions) extends JsonProtocol {
     schedule ~
     completed ~
     aggregate ~
-    entity ~
     aggExpirations ~
     aggWarnings ~
     aggCount ~
+    entity ~
     entExpirations ~
     entWarnings ~
     entCount ~
+    key ~
+    keyCount ~
     tags
 
   // format: ON
