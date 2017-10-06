@@ -2,12 +2,12 @@
 
 A deadman switch as a service.
 
-#### Definitions
+## Definitions
 
 **Task**
 
 A task represents some unit of work that must be completed before a specific 
-deadline. If the task is not completed before the deadline, tje task expires;
+deadline. If the task is not completed before the deadline, the task expires;
 causing expiration records to be written to a C* keyspace.
 
 **Aggregate**
@@ -30,3 +30,12 @@ grouping.
 A series of custom task identifiers. These can be used to arbitrarily query expired 
 tasks within a time window (day, week, or month). Tags must be lower case and contain
 no spaces or special characters.
+
+## References
+
+- [Akka](https://akka.io/)
+- [Cassandra](https://cassandra.apache.org/)
+- [Eventuate](https://rbmhtechnology.github.io/eventuate/)
+- [Protocol Buffers](https://developers.google.com/protocol-buffers/)
+- [Quill](http://getquill.io/)
+- [ScalaPB](https://scalapb.github.io/)
