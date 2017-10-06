@@ -13,7 +13,7 @@ final class AggregateViewTest extends TestSystem {
     "Successfully receive a Task event" in {
       taskActor ! ScheduleTask("test", aggregate, "0", 100L)
       expectMsg(CommandResponse("", CommandResponse.ResponseType.SUCCESS))
-      viewActor ! GetTasks(GetTasks.ViewType.AGGREGATE, aggregate = Some(aggregate))
+      viewActor ! GetTasks(QueryType.AGGREGATE, aggregate = Some(aggregate))
       expectMsgPF() {
         case result: Tasks ⇒
           result.tasks.size must be(1)
@@ -24,7 +24,7 @@ final class AggregateViewTest extends TestSystem {
       // Wait for task to expire
       Thread.sleep(1100L)
       // Query view state
-      viewActor ! GetTasks(GetTasks.ViewType.AGGREGATE, aggregate = Some(aggregate))
+      viewActor ! GetTasks(QueryType.AGGREGATE, aggregate = Some(aggregate))
       expectMsgPF() {
         case result: Tasks ⇒
           result.tasks.isEmpty must be(true)

@@ -21,7 +21,7 @@ final class EntityViewTest extends TestSystem {
       taskActor ! ScheduleTask("test3", aggregate, "1", 100L)
       expectMsg(CommandResponse("", CommandResponse.ResponseType.SUCCESS))
       // Query
-      viewActor ! GetTasks(GetTasks.ViewType.ENTITY, entity = Some("0"))
+      viewActor ! GetTasks(QueryType.ENTITY, entity = Some("0"))
       expectMsgPF() {
         case result: Tasks ⇒
           result.tasks.size must be(2)
@@ -32,7 +32,7 @@ final class EntityViewTest extends TestSystem {
       // Wait for tasks to expire
       Thread.sleep(1100L)
       // Query view state
-      viewActor ! GetTasks(GetTasks.ViewType.ENTITY, entity = Some("0"))
+      viewActor ! GetTasks(QueryType.ENTITY, entity = Some("0"))
       expectMsgPF() {
         case result: Tasks ⇒
           result.tasks.isEmpty must be(true)

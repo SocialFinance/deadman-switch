@@ -21,7 +21,7 @@ final class KeyViewTest extends TestSystem {
       taskActor ! ScheduleTask("test2", aggregate, "2", 100L)
       expectMsg(CommandResponse("", CommandResponse.ResponseType.SUCCESS))
       // Query
-      viewActor ! GetTasks(GetTasks.ViewType.KEY, key = Some("test"))
+      viewActor ! GetTasks(QueryType.KEY, key = Some("test"))
       expectMsgPF() {
         case result: Tasks ⇒
           result.tasks.size must be(2)
@@ -32,7 +32,7 @@ final class KeyViewTest extends TestSystem {
       // Wait for tasks to expire
       Thread.sleep(1100L)
       // Query view state
-      viewActor ! GetTasks(GetTasks.ViewType.KEY, key = Some("test"))
+      viewActor ! GetTasks(QueryType.KEY, key = Some("test"))
       expectMsgPF() {
         case result: Tasks ⇒
           result.tasks.isEmpty must be(true)
