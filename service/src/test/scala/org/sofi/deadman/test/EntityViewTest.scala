@@ -12,13 +12,13 @@ final class EntityViewTest extends TestSystem {
   "An entity view" must {
     "Successfully receive Task events" in {
       // Should come back in query results
-      taskActor ! ScheduleTask("test1", aggregate, "0", 100L)
+      taskActor ! ScheduleTask("test1", aggregate, "0", 1000L)
       expectMsg(CommandResponse("", CommandResponse.ResponseType.SUCCESS))
       // Should come back in query results
-      taskActor ! ScheduleTask("test2", aggregate, "0", 100L)
+      taskActor ! ScheduleTask("test2", aggregate, "0", 1000L)
       expectMsg(CommandResponse("", CommandResponse.ResponseType.SUCCESS))
       // Should NOT come back in query results
-      taskActor ! ScheduleTask("test3", aggregate, "1", 100L)
+      taskActor ! ScheduleTask("test3", aggregate, "1", 1000L)
       expectMsg(CommandResponse("", CommandResponse.ResponseType.SUCCESS))
       // Query
       viewActor ! GetTasks(QueryType.ENTITY, entity = Some("0"))

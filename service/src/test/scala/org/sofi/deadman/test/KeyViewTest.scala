@@ -12,13 +12,13 @@ final class KeyViewTest extends TestSystem {
   "A key view" must {
     "Successfully receive Task events" in {
       // Should come back in query results
-      taskActor ! ScheduleTask("test", aggregate, "0", 100L)
+      taskActor ! ScheduleTask("test", aggregate, "0", 1000L)
       expectMsg(CommandResponse("", CommandResponse.ResponseType.SUCCESS))
       // Should come back in query results
-      taskActor ! ScheduleTask("test", aggregate, "1", 100L)
+      taskActor ! ScheduleTask("test", aggregate, "1", 1000L)
       expectMsg(CommandResponse("", CommandResponse.ResponseType.SUCCESS))
       // Should NOT come back in query results
-      taskActor ! ScheduleTask("test2", aggregate, "2", 100L)
+      taskActor ! ScheduleTask("test2", aggregate, "2", 1000L)
       expectMsg(CommandResponse("", CommandResponse.ResponseType.SUCCESS))
       // Query
       viewActor ! GetTasks(QueryType.KEY, key = Some("test"))

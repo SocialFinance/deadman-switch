@@ -11,7 +11,7 @@ final class AggregateViewTest extends TestSystem {
 
   "An aggregate view" must {
     "Successfully receive a Task event" in {
-      taskActor ! ScheduleTask("test", aggregate, "0", 100L)
+      taskActor ! ScheduleTask("test", aggregate, "0", 1000L)
       expectMsg(CommandResponse("", CommandResponse.ResponseType.SUCCESS))
       viewActor ! GetTasks(QueryType.AGGREGATE, aggregate = Some(aggregate))
       expectMsgPF() {

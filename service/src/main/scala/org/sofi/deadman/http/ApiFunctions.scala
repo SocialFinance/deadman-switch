@@ -6,12 +6,16 @@ import akka.util.Timeout
 import org.sofi.deadman.messages.command._
 import org.sofi.deadman.messages.query._
 import scala.concurrent.{ ExecutionContext, Future }
+import scala.concurrent.duration.Duration
 
 final class ApiFunctions(commandManager: ActorRef, queryManager: ActorRef)(implicit val ec: ExecutionContext, val timeout: Timeout) {
 
+  // Helper function for parsing a `ttl` duration
+  private def parseTTL(dur: String): Long = Duration(dur).toMillis
+
   // Helper function for parsing `ttw` values
   private def parseTTW(ttw: Option[String]): Seq[Long] = {
-    val maybeWarnings: Option[Seq[Long]] = ttw.map(_.split(",").map(_.toLong))
+    val maybeWarnings: Option[Seq[Long]] = ttw.map(_.split(",").map(Duration(_).toMillis))
     maybeWarnings.getOrElse(Seq.empty)
   }
 
@@ -22,9 +26,9 @@ final class ApiFunctions(commandManager: ActorRef, queryManager: ActorRef)(impli
   }
 
   // Schedule a task
-  def scheduleTask(key: String, agg: String, ent: String, ttl: Long, ttw: Option[String], tags: Option[String], ts: Option[Long]) =
+  def scheduleTask(key: String, agg: String, ent: String, ttl: String, ttw: Option[String], tags: Option[String], ts: Option[Long]) =
     commandManager.ask(
-      ScheduleTask(key, agg, ent, ttl, parseTTW(ttw), parseTags(tags), ts)
+      ScheduleTask(key, agg, ent, parseTTL(ttl), parseTTW(ttw), parseTags(tags), ts)
     ).mapTo[CommandResponse]
 
   // Complete a task

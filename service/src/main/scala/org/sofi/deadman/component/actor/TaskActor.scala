@@ -19,7 +19,7 @@ final class TaskActor(val aggregate: String, val replica: String, val eventLog: 
   override val aggregateId = Some(aggregate)
 
   // Schedules task expiration and warning checks
-  private val _ = context.system.scheduler.schedule(1.second, 1.second, self, TaskActor.Tick)
+  private val _ = context.system.scheduler.schedule(500.milliseconds, 500.milliseconds, self, TaskActor.Tick)
 
   // Pending task expiration commands
   private var tasks: Map[String, ExpireTask] = Map.empty
@@ -63,10 +63,14 @@ final class TaskActor(val aggregate: String, val replica: String, val eventLog: 
   // Create persistent events when a command is received
   def onCommand: Receive = {
     case ScheduleTask(key, `aggregate`, entity, ttl, ttw, tags, maybeTs) ⇒
-      val ts = maybeTs.getOrElse(System.currentTimeMillis())
-      persist(Task(key, aggregate, entity, ts, ttl, ttw, tags)) {
-        case Success(_) ⇒ sender() ! CommandResponse("", SUCCESS)
-        case Failure(err) ⇒ sender() ! CommandResponse(err.getMessage, ERROR)
+      if (ttl < 1.second.toMillis) {
+        sender() ! CommandResponse("Task ttl must be >= 1 second", ERROR)
+      } else {
+        val ts = maybeTs.getOrElse(System.currentTimeMillis())
+        persist(Task(key, aggregate, entity, ts, ttl, ttw, tags)) {
+          case Success(_) ⇒ sender() ! CommandResponse("", SUCCESS)
+          case Failure(err) ⇒ sender() ! CommandResponse(err.getMessage, ERROR)
+        }
       }
     case CompleteTask(key, `aggregate`, entity) ⇒
       val id = uid(aggregate, entity, key)

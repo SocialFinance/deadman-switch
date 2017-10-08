@@ -14,7 +14,7 @@ class HttpRouter(implicit api: ApiFunctions) extends JsonProtocol {
     pathPrefix("deadman" / "api" / "v1" / "task") {
       pathEndOrSingleSlash {
         post {
-          parameters('k.as[String], 'a.as[String], 'e.as[String], 'x.as[Long], 'w.as[String].?, 't.as[String].?, 's.as[Long].?) {
+          parameters('k.as[String], 'a.as[String], 'e.as[String], 'x.as[String], 'w.as[String].?, 't.as[String].?, 's.as[Long].?) {
             (key, agg, ent, ttl, ttw, tags, ts) ⇒
               onSuccess(scheduleTask(key, agg, ent, ttl, ttw, tags, ts)) { resp ⇒
                 if (resp.responseType == SUCCESS) {
