@@ -8,8 +8,8 @@ import scala.util.Try
 
 object Http {
 
-  // OK status
-  val OK = HttpStatus.SC_OK
+  // Task successfully scheduled
+  val CREATED = HttpStatus.SC_CREATED
 
   // Captures desired response fields
   final case class HttpResp(status: Int, body: String)
