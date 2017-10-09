@@ -3,6 +3,7 @@ package org.sofi.deadman.test
 import org.sofi.deadman.component.view._
 import org.sofi.deadman.messages.command._
 import org.sofi.deadman.messages.query._
+import scala.concurrent.duration._
 
 final class KeyViewTest extends TestSystem {
 
@@ -12,13 +13,13 @@ final class KeyViewTest extends TestSystem {
   "A key view" must {
     "Successfully receive Task events" in {
       // Should come back in query results
-      taskActor ! ScheduleTask("test", aggregate, "0", 1000L)
+      taskActor ! ScheduleTask("test", aggregate, "0", 1.second.toMillis)
       expectMsg(CommandResponse("", CommandResponse.ResponseType.SUCCESS))
       // Should come back in query results
-      taskActor ! ScheduleTask("test", aggregate, "1", 1000L)
+      taskActor ! ScheduleTask("test", aggregate, "1", 1.second.toMillis)
       expectMsg(CommandResponse("", CommandResponse.ResponseType.SUCCESS))
       // Should NOT come back in query results
-      taskActor ! ScheduleTask("test2", aggregate, "2", 1000L)
+      taskActor ! ScheduleTask("test2", aggregate, "2", 1.second.toMillis)
       expectMsg(CommandResponse("", CommandResponse.ResponseType.SUCCESS))
       // Query
       viewActor ! GetTasks(QueryType.KEY, key = Some("test"))
@@ -30,7 +31,7 @@ final class KeyViewTest extends TestSystem {
     }
     "Successfully clear state on a TaskExpiration event" in {
       // Wait for tasks to expire
-      Thread.sleep(1100L)
+      Thread.sleep(2.seconds.toMillis)
       // Query view state
       viewActor ! GetTasks(QueryType.KEY, key = Some("test"))
       expectMsgPF() {
