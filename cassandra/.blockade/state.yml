@@ -1,0 +1,6 @@
+blockade_id: cassandra
+containers:
+  c1: {id: f26bb7078befab258a0602c90e464f551c6594255b8a89425531b7189559ef6f}
+  c2: {id: 488a87b87ae05d787fbe9e2b1d68865efae25a9c911bb976f45664a641f16956}
+  c3: {id: 00b77e1a8d09bc71e6f78dc33f34b5457f2d09bd3a97387735fe2d99fdf9a053}
+version: 1

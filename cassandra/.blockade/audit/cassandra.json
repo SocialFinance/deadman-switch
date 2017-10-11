@@ -1,0 +1,3 @@
+{"status": "Failed", "timestamp": 1507759330.857576, "message": "Partitions contain unknown containers: ['random']", "event": "partition", "targets": ["['random']"]}
+{"status": "Success", "timestamp": 1507759346.958588, "message": "", "event": "join", "targets": []}
+{"status": "Success", "timestamp": 1507759369.722436, "message": "", "event": "partition", "targets": [["c2", "c1"], ["c3"]]}

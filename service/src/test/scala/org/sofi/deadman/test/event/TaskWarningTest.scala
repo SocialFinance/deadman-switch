@@ -1,9 +1,10 @@
-package org.sofi.deadman.test
+package org.sofi.deadman.test.event
 
 import akka.actor._
 import com.rbmhtechnology.eventuate.EventsourcedView
 import org.sofi.deadman.messages.command._
 import org.sofi.deadman.messages.event._
+import org.sofi.deadman.test.TestSystem
 
 final class TaskWarningTest extends TestSystem {
   // Helper view that forwards a `TaskWarning` event back to the test actor for assertion

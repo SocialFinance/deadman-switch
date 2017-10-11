@@ -1,0 +1,35 @@
+containers:
+  c1:
+    image: cassandra:3.0
+    container_name: c1
+    neutral: false
+    environment:
+      MAX_HEAP_SIZE: 1G
+      HEAP_NEWSIZE: 256M
+
+  c2:
+    image: cassandra:3.0
+    container_name: c2
+    neutral: false
+    links: ["c1"]
+    start_delay: 120
+    ports:
+      9041: 9042
+    environment:
+      CASSANDRA_SEEDS: "c1"
+      MAX_HEAP_SIZE: 1G
+      HEAP_NEWSIZE: 256M
+
+  c3:
+    image: cassandra:3.0
+    container_name: c3
+    neutral: false
+    links: ["c1"]
+    ports:
+      9042: 9042
+    environment:
+      CASSANDRA_SEEDS: "c1"
+      MAX_HEAP_SIZE: 1G
+      HEAP_NEWSIZE: 256M
+
+

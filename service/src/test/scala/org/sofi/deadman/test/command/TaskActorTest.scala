@@ -1,6 +1,7 @@
-package org.sofi.deadman.test
+package org.sofi.deadman.test.command
 
 import org.sofi.deadman.messages.command._
+import org.sofi.deadman.test.TestSystem
 
 final class TaskActorTest extends TestSystem {
   "A task actor" must {

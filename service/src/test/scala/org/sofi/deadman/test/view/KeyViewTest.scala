@@ -1,8 +1,9 @@
-package org.sofi.deadman.test
+package org.sofi.deadman.test.view
 
 import org.sofi.deadman.component.view._
 import org.sofi.deadman.messages.command._
 import org.sofi.deadman.messages.query._
+import org.sofi.deadman.test.TestSystem
 import scala.concurrent.duration._
 
 final class KeyViewTest extends TestSystem {
