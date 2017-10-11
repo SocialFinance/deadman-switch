@@ -25,6 +25,7 @@ project/plugins/project/
 project/project/
 project/target/
 target/
+cassandra/.blockade
 
 # IDE specific
 .scala_dependencies
