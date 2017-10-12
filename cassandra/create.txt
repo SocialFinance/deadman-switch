@@ -1,17 +1,17 @@
 CREATE KEYSPACE deadman_loc1
-  WITH replication = {'class': 'SimpleStrategy', 'replication_factor': '1'}
+  WITH REPLICATION = { 'class' : 'NetworkTopologyStrategy', 'DC1' : 2 }
   AND durable_writes = true;
 
 CREATE KEYSPACE deadman_loc2
-  WITH replication = {'class': 'SimpleStrategy', 'replication_factor': '1'}
+  WITH REPLICATION = { 'class' : 'NetworkTopologyStrategy', 'DC1' : 2 }
   AND durable_writes = true;
 
 CREATE KEYSPACE deadman_loc3
-  WITH replication = {'class': 'SimpleStrategy', 'replication_factor': '1'}
+  WITH REPLICATION = { 'class' : 'NetworkTopologyStrategy', 'DC1' : 2 }
   AND durable_writes = true;
 
 CREATE KEYSPACE deadman
-  WITH replication = {'class': 'SimpleStrategy', 'replication_factor': '1'}
+  WITH REPLICATION = { 'class' : 'NetworkTopologyStrategy', 'DC1' : 2 }
   AND durable_writes = true;
 
 USE deadman;

@@ -4,21 +4,23 @@ containers:
     container_name: c1
     neutral: false
     environment:
-      MAX_HEAP_SIZE: 1G
-      HEAP_NEWSIZE: 256M
+      CASSANDRA_CLUSTER_NAME: sofi
+      CASSANDRA_ENDPOINT_SNITCH: GossipingPropertyFileSnitch
+      CASSANDRA_DC: DC1
 
   c2:
     image: cassandra:3.0
     container_name: c2
     neutral: false
     links: ["c1"]
-    start_delay: 120
+    start_delay: 120 # Recommended wait time between adding cluster nodes
     ports:
       9041: 9042
     environment:
+      CASSANDRA_CLUSTER_NAME: sofi
       CASSANDRA_SEEDS: "c1"
-      MAX_HEAP_SIZE: 1G
-      HEAP_NEWSIZE: 256M
+      CASSANDRA_ENDPOINT_SNITCH: GossipingPropertyFileSnitch
+      CASSANDRA_DC: DC1
 
   c3:
     image: cassandra:3.0
@@ -28,8 +30,7 @@ containers:
     ports:
       9042: 9042
     environment:
+      CASSANDRA_CLUSTER_NAME: sofi
       CASSANDRA_SEEDS: "c1"
-      MAX_HEAP_SIZE: 1G
-      HEAP_NEWSIZE: 256M
-
-
+      CASSANDRA_ENDPOINT_SNITCH: GossipingPropertyFileSnitch
+      CASSANDRA_DC: DC1
