@@ -40,7 +40,7 @@ final class TaskActor(val aggregate: String, val replica: String, val eventLog: 
   private def schedule(t: Task): Unit = {
     val id = t.id
     tasks = tasks + (id -> ExpireTask(t))
-    val warns = t.ttw.filter(_ > 0).filter(_ < t.ttl).map(ttw ⇒ IssueTaskWarning(t, ttw))
+    val warns = t.ttw.map(ttw ⇒ IssueTaskWarning(t, ttw))
     warnings = warnings + (id -> warns)
   }
 
@@ -70,6 +70,10 @@ final class TaskActor(val aggregate: String, val replica: String, val eventLog: 
         sender() ! CommandResponse(s"Aggregate does not support > $MAX_TASKS tasks", ERROR)
       } else if (ttl < 1.second.toMillis) {
         sender() ! CommandResponse("Task ttl must be >= 1 second", ERROR)
+      } else if (ttw.exists(_ < 1.second.toMillis)) {
+        sender() ! CommandResponse("Task ttw must be >= 1 second", ERROR)
+      } else if (ttw.exists(_ > ttl)) {
+        sender() ! CommandResponse("Task ttw must be < ttl", ERROR)
       } else {
         persist(Task(key, aggregate, entity, ts.getOrElse(System.currentTimeMillis()), ttl, ttw, tags)) {
           case Success(_) ⇒ sender() ! CommandResponse("", SUCCESS)
