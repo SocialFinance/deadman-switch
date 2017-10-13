@@ -9,6 +9,7 @@ import scala.util.Try
 object Http {
 
   // Task successfully scheduled
+  val OK = HttpStatus.SC_OK
   val CREATED = HttpStatus.SC_CREATED
 
   // Captures desired response fields
@@ -27,4 +28,7 @@ object Http {
 
   // Perform a HTTP POST to the given URL without a body
   def post(url: String) = httpResp(Request.Post(url).execute.returnResponse)
+
+  // Perform a HTTP GET on the given URL
+  def get(url: String) = httpResp(Request.Get(url).execute().returnResponse())
 }

@@ -2,7 +2,6 @@ containers:
   c1:
     image: cassandra:3.0
     container_name: c1
-    neutral: false
     environment:
       CASSANDRA_CLUSTER_NAME: sofi
       CASSANDRA_ENDPOINT_SNITCH: GossipingPropertyFileSnitch
@@ -11,11 +10,8 @@ containers:
   c2:
     image: cassandra:3.0
     container_name: c2
-    neutral: false
     links: ["c1"]
-    start_delay: 120 # Recommended wait time between adding cluster nodes
-    ports:
-      9041: 9042
+    start_delay: 60 # Wait before adding this cluster node
     environment:
       CASSANDRA_CLUSTER_NAME: sofi
       CASSANDRA_SEEDS: "c1"
@@ -25,7 +21,6 @@ containers:
   c3:
     image: cassandra:3.0
     container_name: c3
-    neutral: false
     links: ["c1"]
     ports:
       9042: 9042
@@ -34,3 +29,7 @@ containers:
       CASSANDRA_SEEDS: "c1"
       CASSANDRA_ENDPOINT_SNITCH: GossipingPropertyFileSnitch
       CASSANDRA_DC: DC1
+
+network:
+  flaky: 30%
+  slow: 75ms 100ms distribution normal

@@ -11,7 +11,9 @@ final class CounterActor(val key: String) extends Actor with ActorLogging {
       count = count + 1
     case CounterActor.Decrement ⇒
       log.debug(s"Decrement: $key")
-      count = count - 1
+      if (count > 0) {
+        count = count - 1
+      }
     case _: GetCount ⇒
       log.debug(s"GetCount: $key")
       sender() ! Count(count)
