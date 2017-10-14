@@ -20,6 +20,8 @@ object Validate extends App {
           println(s"Key $taskKey not found for aggregate: $a")
         }
       }
+    } else {
+      println(s"${resp.status}: ${resp.body}")
     }
   }
 

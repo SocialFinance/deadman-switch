@@ -30,6 +30,7 @@ containers:
       CASSANDRA_ENDPOINT_SNITCH: GossipingPropertyFileSnitch
       CASSANDRA_DC: DC1
 
-network:
-  flaky: 30%
-  slow: 75ms 100ms distribution normal
+# Uncomment to break things
+#network:
+#  flaky: 30%
+#  slow: 75ms 100ms distribution normal
