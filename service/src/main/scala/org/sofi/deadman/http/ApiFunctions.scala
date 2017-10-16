@@ -9,6 +9,7 @@ import org.sofi.deadman.messages.command._, CommandResponse.ResponseType._
 import org.sofi.deadman.messages.query._
 import scala.concurrent.Future
 import scala.concurrent.duration._
+import scala.util.control.NonFatal
 
 final class ApiFunctions(commandManager: ActorRef, queryManager: ActorRef)(implicit val sys: ActorSystem, val t: Timeout, val am: ActorMaterializer) {
 
@@ -79,6 +80,10 @@ final class ApiFunctions(commandManager: ActorRef, queryManager: ActorRef)(impli
     queue.offer(ScheduleTask(key, agg, ent, parseTTL(ttl), parseTTW(ttw), parseTags(tags), ts)).map {
       case QueueOfferResult.Enqueued ⇒ CommandResponse("", QUEUED)
       case _ ⇒ CommandResponse("Buffer overflow: unable to queue task", ERROR)
+    } recoverWith {
+      case NonFatal(err) ⇒
+        sys.log.error("Task queue error: {}", err)
+        Future.successful(CommandResponse("Buffer overflow: unable to queue task", ERROR))
     }
 
   // Complete a task

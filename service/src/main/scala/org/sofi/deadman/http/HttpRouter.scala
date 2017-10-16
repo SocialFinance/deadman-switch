@@ -38,7 +38,7 @@ class HttpRouter(implicit api: ApiFunctions) extends JsonProtocol {
                 if (resp.responseType == QUEUED) {
                   complete(resp)
                 } else {
-                  complete(BadRequest -> resp)
+                  complete(ServiceUnavailable -> resp)
                 }
               }
           }
