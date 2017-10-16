@@ -19,7 +19,7 @@ object Load extends App {
       val url = s"http://127.0.0.1:$port/deadman/api/v1/task/async?k=$k&a=$a&e=$e&x=$x&s=${s + j}"
       println(url)
       val rep = Http.post(url)
-      if (rep.status != Http.CREATED) {
+      if (rep.status != Http.OK) {
         println(rep.body)
       }
     }
@@ -30,6 +30,6 @@ object Load extends App {
       (1 to 10).map(scheduleTasks)
     }
 
-  Await.result(scheduleAggregates(), 0.nanos)
+  Await.result(scheduleAggregates(), 10.minutes)
   println("done!")
 }

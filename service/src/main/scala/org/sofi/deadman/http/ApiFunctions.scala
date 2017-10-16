@@ -77,7 +77,7 @@ final class ApiFunctions(commandManager: ActorRef, queryManager: ActorRef)(impli
   // Asynchronously schedule a task
   def scheduleTaskAsync(key: String, agg: String, ent: String, ttl: String, ttw: Option[String], tags: Option[String], ts: Option[Long]) =
     queue.offer(ScheduleTask(key, agg, ent, parseTTL(ttl), parseTTW(ttw), parseTags(tags), ts)).map {
-      case QueueOfferResult.Enqueued ⇒ CommandResponse("", SUCCESS)
+      case QueueOfferResult.Enqueued ⇒ CommandResponse("", QUEUED)
       case _ ⇒ CommandResponse("Buffer overflow: unable to queue task", ERROR)
     }
 
