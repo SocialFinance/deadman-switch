@@ -28,6 +28,24 @@ class HttpRouter(implicit api: ApiFunctions) extends JsonProtocol {
       }
     }
 
+  private val scheduleAsync =
+    pathPrefix("deadman" / "api" / "v1" / "task" / "async") {
+      pathEndOrSingleSlash {
+        post {
+          parameters('k.as[String], 'a.as[String], 'e.as[String], 'x.as[String], 'w.as[String].?, 't.as[String].?, 's.as[Long].?) {
+            (key, agg, ent, ttl, ttw, tags, ts) ⇒
+              onSuccess(scheduleTaskAsync(key, agg, ent, ttl, ttw, tags, ts)) { resp ⇒
+                if (resp.responseType == SUCCESS) {
+                  complete(Created -> resp)
+                } else {
+                  complete(BadRequest -> resp)
+                }
+              }
+          }
+        }
+      }
+    }
+
   private val completed =
     pathPrefix("deadman" / "api" / "v1" / "task") {
       pathEndOrSingleSlash {
@@ -172,6 +190,7 @@ class HttpRouter(implicit api: ApiFunctions) extends JsonProtocol {
   // Combine all endpoints
   val routes =
     schedule ~
+    scheduleAsync ~
     completed ~
     aggregate ~
     aggExpirations ~

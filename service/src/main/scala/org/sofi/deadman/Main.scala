@@ -1,6 +1,7 @@
 package org.sofi.deadman
 
 import akka.actor._
+import akka.stream.ActorMaterializer
 import akka.util.Timeout
 import org.sofi.deadman.http._
 import org.sofi.deadman.location.NetworkLocation
@@ -20,6 +21,7 @@ object Main extends App with Server {
   // Boot actor system
   implicit val system = ActorSystem("deadman-switch-actor-system", ConfigFactory.load(id).resolve())
   implicit val executionContext = system.dispatcher
+  implicit val materialize = ActorMaterializer()
 
   // Init actor API timeout
   val duration = Duration(system.settings.config.getString("request-timeout"))
@@ -68,7 +70,7 @@ private final class CommandLine(val commandManager: ActorRef, val queryManager: 
       // Commands
 
       case "schedule" :: key :: agg :: ent :: ttl :: ttw :: tags ⇒
-        commandManager ! ScheduleTask(key, agg, ent, ttl.toLong, Seq(ttw.toLong), tags)
+        commandManager ! ScheduleTask(key, agg, ent, Duration(ttl).toMillis, Seq(Duration(ttw).toMillis), tags)
 
       case "complete" :: key :: agg :: ent :: Nil ⇒
         commandManager ! CompleteTask(key, agg, ent)

@@ -7,9 +7,8 @@ import akka.http.scaladsl.server.Route
 import akka.stream.ActorMaterializer
 
 trait Server {
-  def startup(routes: Route)(implicit system: ActorSystem): Unit = {
+  def startup(routes: Route)(implicit system: ActorSystem, am: ActorMaterializer): Unit = {
     implicit val ec = system.dispatcher
-    implicit val materialize = ActorMaterializer()
     val log = Logging(system.eventStream, "deadman-switch")
     val host = system.settings.config.getString("http.host")
     val port = system.settings.config.getInt("http.port")
