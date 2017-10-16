@@ -7,7 +7,7 @@ import scala.concurrent.duration._
 // Load some tasks into the deadman switch service
 object Load extends App {
 
-  private val ports = Array(9876) //, 9877, 9878)
+  private val ports = Array(9876, 9877, 9878)
 
   private def scheduleTasks(a: Int): Future[Unit] = Future {
     val e = a - 1

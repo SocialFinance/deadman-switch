@@ -176,7 +176,7 @@ class HttpRouter(implicit api: ApiFunctions) extends JsonProtocol {
 
   private val tags =
     pathPrefix("deadman" / "api" / "v1" / "tag" / Segment) { tag ⇒
-      path(Segment) { window =>
+      path(Segment) { window ⇒
         pathEndOrSingleSlash {
           get {
             onSuccess(queryExpiredTag(tag, window)) { tasks ⇒
