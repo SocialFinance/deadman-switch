@@ -45,11 +45,14 @@ final class TaskActor(val aggregate: String, val replica: String, val eventLog: 
   }
 
   // Check for expired tasks and send commands
-  private def checkExpired(): Unit =
-    tasks.filter(_._2.task.isExpired).foreach {
+  private def checkExpired(): Unit = {
+    val (expired, nonExpired) = tasks.partition(_._2.task.isExpired)
+    tasks = nonExpired
+    expired.foreach {
       case (_, expireTask) ⇒
         self ! expireTask
     }
+  }
 
   // Check for expired warnings and send commands
   private def checkWarnings(): Unit =
@@ -75,6 +78,7 @@ final class TaskActor(val aggregate: String, val replica: String, val eventLog: 
       } else if (ttw.exists(_ > ttl)) {
         sender() ! CommandResponse("Task ttw must be < ttl", ERROR)
       } else {
+        log.debug(s"${uid(aggregate, entity, key)}")
         persist(Task(key, aggregate, entity, ts.getOrElse(System.currentTimeMillis()), ttl, ttw, tags)) {
           case Success(_) ⇒ sender() ! CommandResponse("", SUCCESS)
           case Failure(err) ⇒ sender() ! CommandResponse(err.getMessage, ERROR)
@@ -114,8 +118,6 @@ final class TaskActor(val aggregate: String, val replica: String, val eventLog: 
     case t: Task ⇒
       schedule(t)
     case t: TaskTermination ⇒
-      cancel(t.id)
-    case TaskExpiration(t, _) ⇒
       cancel(t.id)
   }
 }
