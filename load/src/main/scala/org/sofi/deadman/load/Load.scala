@@ -19,7 +19,7 @@ object Load extends App {
     val resp = Http.post(url)
     if (resp.status == Http.OK || n >= max) resp else {
       Thread.sleep(pause)
-      post(url, Math.min(pause+backoff, maxBackoff), max, n + 1)
+      post(url, Math.min(pause + backoff, maxBackoff), max, n + 1)
     }
   }
 

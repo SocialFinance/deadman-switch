@@ -103,7 +103,7 @@ final class TaskActor(val aggregate: String, val replica: String, val eventLog: 
       }
     case IssueTaskWarning(task, ttw) ⇒
       if (!task.isExpired) {
-        persist(TaskWarning(task, ttw)) {
+        persist(TaskWarning(task, ttw, System.currentTimeMillis())) {
           case Success(_) ⇒ log.info("Warning for task: {}", task)
           case Failure(err) ⇒ log.error("Unable to persist task expiration warning event", err)
         }

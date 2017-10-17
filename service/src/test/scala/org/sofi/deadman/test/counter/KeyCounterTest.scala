@@ -9,7 +9,7 @@ import scala.concurrent.duration._
 final class KeyCounterTest extends TestSystem {
 
   // Key counter actor
-  val counterActor = system.actorOf(KeyCounter.props(KeyCounter.name(aggregate), eventLog))
+  private val counterActor = system.actorOf(KeyCounter.props(KeyCounter.name(aggregate), eventLog))
 
   "A key counter" must {
     "Successfully count Task events" in {

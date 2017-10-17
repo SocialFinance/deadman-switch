@@ -9,32 +9,38 @@ import scala.concurrent.duration._
 final class KeyViewTest extends TestSystem {
 
   // View
-  val viewActor = system.actorOf(KeyView.props(aggregate, eventLog))
+  private val viewActor = system.actorOf(KeyView.props(aggregate, eventLog))
+
+  // Test TTL (min allowed value)
+  private val ttl = 1.second.toMillis
+
+  // Expected value
+  private val taskKey = "test"
 
   "A key view" must {
     "Successfully receive Task events" in {
       // Should come back in query results
-      taskActor ! ScheduleTask("test", aggregate, "0", 1.second.toMillis)
+      taskActor ! ScheduleTask(taskKey, aggregate, "0", ttl)
       expectMsg(CommandResponse("", CommandResponse.ResponseType.SUCCESS))
       // Should come back in query results
-      taskActor ! ScheduleTask("test", aggregate, "1", 1.second.toMillis)
+      taskActor ! ScheduleTask(taskKey, aggregate, "1", ttl)
       expectMsg(CommandResponse("", CommandResponse.ResponseType.SUCCESS))
       // Should NOT come back in query results
-      taskActor ! ScheduleTask("test2", aggregate, "2", 1.second.toMillis)
+      taskActor ! ScheduleTask("test2", aggregate, "2", ttl)
       expectMsg(CommandResponse("", CommandResponse.ResponseType.SUCCESS))
       // Query
-      viewActor ! GetTasks(QueryType.KEY, key = Some("test"))
+      viewActor ! GetTasks(QueryType.KEY, key = Some(taskKey))
       expectMsgPF() {
         case result: Tasks ⇒
           result.tasks.size must be(2)
-          result.tasks.foreach(_.key must be("test"))
+          result.tasks.foreach(_.key must be(taskKey))
       }
     }
     "Successfully clear state on a TaskExpiration event" in {
       // Wait for tasks to expire
       Thread.sleep(2.seconds.toMillis)
       // Query view state
-      viewActor ! GetTasks(QueryType.KEY, key = Some("test"))
+      viewActor ! GetTasks(QueryType.KEY, key = Some(taskKey))
       expectMsgPF() {
         case result: Tasks ⇒
           result.tasks.isEmpty must be(true)

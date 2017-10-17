@@ -9,7 +9,7 @@ import scala.concurrent.duration._
 final class EntityCounterTest extends TestSystem {
 
   // Entity counter actor
-  val counterActor = system.actorOf(EntityCounter.props(EntityCounter.name(aggregate), eventLog))
+  private val counterActor = system.actorOf(EntityCounter.props(EntityCounter.name(aggregate), eventLog))
 
   "An entity counter" must {
     "Successfully count Task events" in {

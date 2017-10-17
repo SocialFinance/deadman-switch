@@ -4,36 +4,43 @@ import org.sofi.deadman.component.view._
 import org.sofi.deadman.messages.command._
 import org.sofi.deadman.messages.query._
 import org.sofi.deadman.test.TestSystem
+import scala.concurrent.duration._
 
 final class EntityViewTest extends TestSystem {
 
   // View
-  val viewActor = system.actorOf(EntityView.props(aggregate, eventLog))
+  private val viewActor = system.actorOf(EntityView.props(aggregate, eventLog))
+
+  // Test TTL (min allowed value)
+  private val ttl = 1.second.toMillis
+
+  // Expected value
+  private val entity = "0"
 
   "An entity view" must {
     "Successfully receive Task events" in {
       // Should come back in query results
-      taskActor ! ScheduleTask("test1", aggregate, "0", 1000L)
+      taskActor ! ScheduleTask("test1", aggregate, entity, ttl)
       expectMsg(CommandResponse("", CommandResponse.ResponseType.SUCCESS))
       // Should come back in query results
-      taskActor ! ScheduleTask("test2", aggregate, "0", 1000L)
+      taskActor ! ScheduleTask("test2", aggregate, entity, ttl)
       expectMsg(CommandResponse("", CommandResponse.ResponseType.SUCCESS))
       // Should NOT come back in query results
-      taskActor ! ScheduleTask("test3", aggregate, "1", 1000L)
+      taskActor ! ScheduleTask("test3", aggregate, "1", ttl)
       expectMsg(CommandResponse("", CommandResponse.ResponseType.SUCCESS))
       // Query
-      viewActor ! GetTasks(QueryType.ENTITY, entity = Some("0"))
+      viewActor ! GetTasks(QueryType.ENTITY, entity = Some(entity))
       expectMsgPF() {
         case result: Tasks ⇒
           result.tasks.size must be(2)
-          result.tasks.foreach(_.entity must be("0"))
+          result.tasks.foreach(_.entity must be(entity))
       }
     }
     "Successfully clear state on a TaskExpiration event" in {
       // Wait for tasks to expire
-      Thread.sleep(1100L)
+      Thread.sleep(2.seconds.toMillis)
       // Query view state
-      viewActor ! GetTasks(QueryType.ENTITY, entity = Some("0"))
+      viewActor ! GetTasks(QueryType.ENTITY, entity = Some(entity))
       expectMsgPF() {
         case result: Tasks ⇒
           result.tasks.isEmpty must be(true)

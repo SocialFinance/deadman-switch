@@ -9,7 +9,7 @@ import scala.concurrent.duration._
 final class AggregateCounterTest extends TestSystem {
 
   // Counter actor
-  val counterActor = system.actorOf(AggregateCounter.props(AggregateCounter.name(aggregate), eventLog))
+  private val counterActor = system.actorOf(AggregateCounter.props(AggregateCounter.name(aggregate), eventLog))
 
   "An aggregate counter" must {
     "Successfully count Task events" in {

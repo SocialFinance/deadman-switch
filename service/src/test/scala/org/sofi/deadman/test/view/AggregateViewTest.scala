@@ -4,15 +4,16 @@ import org.sofi.deadman.component.view._
 import org.sofi.deadman.messages.command._
 import org.sofi.deadman.messages.query._
 import org.sofi.deadman.test.TestSystem
+import scala.concurrent.duration._
 
 final class AggregateViewTest extends TestSystem {
 
   // View
-  val viewActor = system.actorOf(AggregateView.props(aggregate, eventLog))
+  private val viewActor = system.actorOf(AggregateView.props(aggregate, eventLog))
 
   "An aggregate view" must {
     "Successfully receive a Task event" in {
-      taskActor ! ScheduleTask("test", aggregate, "0", 1000L)
+      taskActor ! ScheduleTask("test", aggregate, "0", 1.second.toMillis)
       expectMsg(CommandResponse("", CommandResponse.ResponseType.SUCCESS))
       viewActor ! GetTasks(QueryType.AGGREGATE, aggregate = Some(aggregate))
       expectMsgPF() {
@@ -23,7 +24,7 @@ final class AggregateViewTest extends TestSystem {
     }
     "Successfully clear state on a TaskExpiration event" in {
       // Wait for task to expire
-      Thread.sleep(1100L)
+      Thread.sleep(2.seconds.toMillis)
       // Query view state
       viewActor ! GetTasks(QueryType.AGGREGATE, aggregate = Some(aggregate))
       expectMsgPF() {

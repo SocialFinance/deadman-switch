@@ -27,7 +27,8 @@ message TaskExpiration {
 
 message TaskWarning {
     required Task task = 1;        // Task about to expire
-    required uint64 ts = 2;        // Warning timestamp
+    required uint64 ttw = 2;       // Warning timeout
+    required uint64 ts = 3;        // Warning timestamp
 }
 
 message TaggedExpiration {
