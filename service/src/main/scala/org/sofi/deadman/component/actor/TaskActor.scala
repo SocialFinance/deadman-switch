@@ -2,7 +2,7 @@ package org.sofi.deadman.component.actor
 
 import akka.actor._
 import com.rbmhtechnology.eventuate._
-import org.sofi.deadman.messages.command._, CommandResponse.ResponseType._
+import org.sofi.deadman.messages.command._, ResponseType._
 import org.sofi.deadman.messages.event._
 import scala.concurrent.duration._
 import scala.util.{ Failure, Success }

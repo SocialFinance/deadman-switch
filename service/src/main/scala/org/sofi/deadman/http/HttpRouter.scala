@@ -3,7 +3,7 @@ package org.sofi.deadman.http
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
 import akka.http.scaladsl.model.StatusCodes._
 import akka.http.scaladsl.server.Directives._
-import org.sofi.deadman.messages.command.CommandResponse.ResponseType._
+import org.sofi.deadman.messages.command.ResponseType._
 
 class HttpRouter(implicit api: ApiFunctions) extends JsonProtocol {
   import api._

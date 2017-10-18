@@ -21,7 +21,7 @@ final class TaskExpirationTest extends TestSystem {
       // Forwards task expiration events to the test actor
       system.actorOf(Props(new TaskExpirationForwarder(aggregate, eventLog)))
       taskActor ! ScheduleTask("test", aggregate, "0", 1.second.toMillis)
-      expectMsg(CommandResponse("", CommandResponse.ResponseType.SUCCESS))
+      expectMsg(CommandResponse("", ResponseType.SUCCESS))
       expectMsgPF() {
         case event: TaskExpiration ⇒
           event.task.key must be("test")

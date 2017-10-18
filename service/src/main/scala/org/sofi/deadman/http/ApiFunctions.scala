@@ -5,7 +5,7 @@ import akka.pattern.ask
 import akka.stream._
 import akka.stream.scaladsl._
 import akka.util.Timeout
-import org.sofi.deadman.messages.command._, CommandResponse.ResponseType._
+import org.sofi.deadman.messages.command._, ResponseType._
 import org.sofi.deadman.messages.query._
 import scala.concurrent.Future
 import scala.concurrent.duration._

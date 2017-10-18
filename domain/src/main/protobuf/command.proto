@@ -2,6 +2,8 @@ syntax = "proto2";
 
 package org.sofi.deadman.messages;
 
+import "event.proto";
+
 // Commands ---------------------------------------------------------------------------------------
 
 message ScheduleTask {
@@ -20,14 +22,24 @@ message CompleteTask {
     required string entity = 3;    // Entity ID (eg customer)
 }
 
+message ExpireTask {
+    required Task task = 1;        // The expired task
+}
+
+message IssueTaskWarning {
+    required Task task = 1;        // The expired task
+    required uint64 ttw = 2;       // The expiration duration
+}
+
 // Command Response -------------------------------------------------------------------------------
 
+enum ResponseType {
+    SUCCESS = 0;
+    ERROR = 1;
+    QUEUED = 2;
+}
+
 message CommandResponse {
-    enum ResponseType {
-        SUCCESS = 0;
-        ERROR = 1;
-        QUEUED = 2;
-    }
     required string body = 1;
     required ResponseType responseType = 2 [default = SUCCESS];
 }

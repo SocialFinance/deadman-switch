@@ -20,7 +20,7 @@ final class TaskWarningTest extends TestSystem {
     "Successfully persist a task warning event" in {
       system.actorOf(Props(new TaskWarningForwarder(aggregate, eventLog)))
       taskActor ! ScheduleTask("test", aggregate, "0", 10.days.toMillis, Seq(1.second.toMillis))
-      expectMsg(CommandResponse("", CommandResponse.ResponseType.SUCCESS))
+      expectMsg(CommandResponse("", ResponseType.SUCCESS))
       expectMsgPF() {
         case event: TaskWarning ⇒
           event.ttw must be(1.second.toMillis)
