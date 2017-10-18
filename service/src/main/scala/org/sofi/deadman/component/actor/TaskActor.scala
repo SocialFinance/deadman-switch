@@ -10,7 +10,7 @@ import scala.util.{ Failure, Success }
 final class TaskActor(val aggregate: String, val replica: String, val eventLog: ActorRef) extends EventsourcedActor with ActorLogging {
 
   // Max number of tasks
-  private val MAX_TASKS: Int = 1000
+  private val MAX_TASKS = 1000
 
   // Implicit execution context
   import context.dispatcher
@@ -78,10 +78,12 @@ final class TaskActor(val aggregate: String, val replica: String, val eventLog: 
       } else if (ttw.exists(_ > ttl)) {
         sender() ! CommandResponse("Task ttw must be < ttl", ERROR)
       } else {
-        log.debug(s"${uid(aggregate, entity, key)}")
+        log.info(s"Persisting Task: $aggregate:$entity:$key")
         persist(Task(key, aggregate, entity, ts.getOrElse(System.currentTimeMillis()), ttl, ttw, tags)) {
           case Success(_) ⇒ sender() ! CommandResponse("", SUCCESS)
-          case Failure(err) ⇒ sender() ! CommandResponse(err.getMessage, ERROR)
+          case Failure(err) ⇒
+            log.error("Unable to persist task {}", err)
+            sender() ! CommandResponse(err.getMessage, ERROR)
         }
       }
     case CompleteTask(key, `aggregate`, entity) ⇒
@@ -91,21 +93,23 @@ final class TaskActor(val aggregate: String, val replica: String, val eventLog: 
       } else {
         persist(TaskTermination(key, aggregate, entity)) {
           case Success(_) ⇒ sender() ! CommandResponse("", SUCCESS)
-          case Failure(err) ⇒ sender() ! CommandResponse(err.getMessage, ERROR)
+          case Failure(err) ⇒
+            log.error("Unable to persist task termination {}", err)
+            sender() ! CommandResponse(err.getMessage, ERROR)
         }
       }
     case ExpireTask(task) ⇒
       if (task.isExpired) {
         persist(TaskExpiration(task, System.currentTimeMillis())) {
           case Success(_) ⇒ log.info("Expiration for task: {}", task)
-          case Failure(err) ⇒ log.error("Unable to persist task expiration event", err)
+          case Failure(err) ⇒ log.error("Unable to persist task expiration {}", err)
         }
       }
     case IssueTaskWarning(task, ttw) ⇒
       if (!task.isExpired) {
         persist(TaskWarning(task, ttw, System.currentTimeMillis())) {
           case Success(_) ⇒ log.info("Warning for task: {}", task)
-          case Failure(err) ⇒ log.error("Unable to persist task expiration warning event", err)
+          case Failure(err) ⇒ log.error("Unable to persist task expiration warning {}", err)
         }
       }
     case TaskActor.Tick ⇒

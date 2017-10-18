@@ -10,6 +10,7 @@ object Http {
 
   // Task successfully scheduled
   val OK = HttpStatus.SC_OK
+  val SERVICE_UNAVAILABLE = HttpStatus.SC_SERVICE_UNAVAILABLE
 
   // Captures desired response fields
   final case class HttpResp(status: Int, body: String)

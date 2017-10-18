@@ -9,17 +9,19 @@ import scala.concurrent.duration._
 object Load extends App {
 
   private val ports = Array(9876) //, 9877, 9878)
-  private val maxBackoff = 2.seconds.toMillis
-  private val backoff = 250L
+  private val maxBackoff = 2.seconds
+  private val backoff = 250.millis
 
   // HTTP post with retry logic
   @tailrec
-  private def post(url: String, pause: Long = 1.second.toMillis, max: Int = 10, n: Int = 0): Http.HttpResp = {
+  private def post(url: String, pause: Duration = 1.second, max: Int = 10, n: Int = 0): Http.HttpResp = {
     println(url)
     val resp = Http.post(url)
-    if (resp.status == Http.OK || n >= max) resp else {
-      Thread.sleep(pause)
-      post(url, Math.min(pause + backoff, maxBackoff), max, n + 1)
+    // Only retry on 503s
+    if (resp.status != Http.SERVICE_UNAVAILABLE || n >= max) resp else {
+      Thread.sleep(pause.toMillis)
+      val nextPause = if (pause + backoff > maxBackoff) maxBackoff else pause + backoff
+      post(url, nextPause, max, n + 1)
     }
   }
 
@@ -29,7 +31,7 @@ object Load extends App {
     val s = System.currentTimeMillis() // Use a base start timestamp for each aggregate task
     (1 to 100).foreach { j ⇒
       val k = s"task$j"
-      val x = s"${a}min"
+      val x = if (a < 33) "20min" else if (a > 66) "10min" else "15min"
       val port = ports(j % ports.length)
       val rep = post(s"http://127.0.0.1:$port/deadman/api/v1/task/async?k=$k&a=$a&e=$e&x=$x&s=${s + j}")
       if (rep.status != Http.OK) {
@@ -41,7 +43,7 @@ object Load extends App {
   // Schedule tasks for a range of aggregates
   def scheduleAggregates() =
     Future.sequence {
-      (1 to 10).map(scheduleTasks)
+      (1 to 100).map(scheduleTasks)
     }
 
   // Wait until complete

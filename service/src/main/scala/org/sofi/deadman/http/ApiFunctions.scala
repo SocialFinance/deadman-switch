@@ -71,20 +71,27 @@ final class ApiFunctions(commandManager: ActorRef, queryManager: ActorRef)(impli
     seq.getOrElse(Seq.empty)
   }
 
+  // Send a command response error when a task cannot be queued
+  private val notQueued: PartialFunction[Throwable, Future[CommandResponse]] = {
+    case NonFatal(err) ⇒
+      sys.log.error("Task queue error: {}", err)
+      Future.successful(CommandResponse("Buffer overflow: unable to queue task", ERROR))
+  }
+
+  // Offer at ask to the akka streams queue
+  private def offer(task: ScheduleTask) =
+    queue.offer(task).map {
+      case QueueOfferResult.Enqueued ⇒ CommandResponse("", QUEUED)
+      case _ ⇒ CommandResponse("Buffer overflow: unable to queue task", ERROR)
+    }
+
   // Schedule a task
   def scheduleTask(key: String, agg: String, ent: String, ttl: String, ttw: Option[String], tags: Option[String], ts: Option[Long]) =
     commandManager.ask(ScheduleTask(key, agg, ent, parseTTL(ttl), parseTTW(ttw), parseTags(tags), ts)).mapTo[CommandResponse]
 
   // Asynchronously schedule a task
   def scheduleTaskAsync(key: String, agg: String, ent: String, ttl: String, ttw: Option[String], tags: Option[String], ts: Option[Long]) =
-    queue.offer(ScheduleTask(key, agg, ent, parseTTL(ttl), parseTTW(ttw), parseTags(tags), ts)).map {
-      case QueueOfferResult.Enqueued ⇒ CommandResponse("", QUEUED)
-      case _ ⇒ CommandResponse("Buffer overflow: unable to queue task", ERROR)
-    } recoverWith {
-      case NonFatal(err) ⇒
-        sys.log.error("Task queue error: {}", err)
-        Future.successful(CommandResponse("Buffer overflow: unable to queue task", ERROR))
-    }
+    offer(ScheduleTask(key, agg, ent, parseTTL(ttl), parseTTW(ttw), parseTags(tags), ts)).recoverWith(notQueued)
 
   // Complete a task
   def completeTask(key: String, agg: String, ent: String): Future[CommandResponse] =
