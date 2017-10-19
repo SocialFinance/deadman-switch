@@ -3,9 +3,8 @@ package org.sofi.deadman.http
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
 import akka.http.scaladsl.model.StatusCodes._
 import akka.http.scaladsl.server.Directives._
-import org.sofi.deadman.messages.command._
-import ResponseType._
-import scala.concurrent.{ExecutionContext, Future}
+import org.sofi.deadman.messages.command._, ResponseType._
+import scala.concurrent.{ ExecutionContext, Future }
 
 final class HttpRouter(implicit api: ApiFunctions, ec: ExecutionContext) extends JsonProtocol {
   import api._
@@ -34,15 +33,11 @@ final class HttpRouter(implicit api: ApiFunctions, ec: ExecutionContext) extends
     pathPrefix("deadman" / "api" / "v1" / "task") {
       pathEndOrSingleSlash {
         put {
-          parameters('k.as[String], 'a.as[String], 'e.as[String]) {
-            (key, agg, ent) ⇒
-              onSuccess(completeTask(key, agg, ent)) { resp ⇒
-                if (resp.responseType == SUCCESS) {
-                  complete(resp)
-                } else {
-                  complete(NotFound -> resp)
-                }
-              }
+          parameters('k.as[String], 'a.as[String], 'e.as[String]) { (key, agg, ent) ⇒
+            onSuccess(completeTask(key, agg, ent)) { resp ⇒
+              val status = if (resp.responseType == SUCCESS) OK else NotFound
+              complete(status -> resp)
+            }
           }
         }
       }
