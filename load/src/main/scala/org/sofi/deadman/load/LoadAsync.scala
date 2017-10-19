@@ -34,7 +34,7 @@ object LoadAsync extends App {
         Map[String, Any](
           "key" -> s"task$j",
           "aggregate" -> s"$a",
-          "entity" -> s"${a-1}",
+          "entity" -> s"${a - 1}",
           "ttl" -> (if (a < 33) 3.minutes else if (a > 66) 2.minutes else 1.minute).toMillis,
           "ttw" -> Seq.empty,
           "tags" -> Seq.empty,
