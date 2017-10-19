@@ -26,49 +26,25 @@ final class ApiFunctions(commandManager: ActorRef, queryManager: ActorRef)(impli
   private val TIME_WINDOW = 1.second
 
   // Stream parallelism setting
-  private val PARALLELISM = Runtime.getRuntime.availableProcessors()
-
-  // The following Akka Streams implementation batches writes to the command manager, buffering messages until the buffer size
-  // is reached -or- a given amount of time passes. It also limits the number of outstanding asynchronous `ask` calls.
-  private val queue =
-    Source.queue[ScheduleTask](BUFFER_SIZE, OverflowStrategy.backpressure)
-      .map(setTimestamp)
-      .groupedWithin(GROUP_SIZE, TIME_WINDOW)
-      .mapAsync(PARALLELISM)(sendBatch)
-      .to(Sink.foreach(logCommandErrors))
-      .run()
+  private val PARALLELISM = 10
 
   // Make sure the command timestamp is set
   private def setTimestamp(cmd: ScheduleTask) =
     if (cmd.ts.isDefined) cmd else cmd.copy(ts = Some(System.currentTimeMillis()))
 
-  // Send a command batch to the command manager
-  private def sendBatch(batch: Seq[ScheduleTask]) =
+  // Send a batch to the command manager
+  private def sendCommands(commands: Seq[ScheduleTask]) =
     Future.sequence {
-      batch.map { cmd ⇒
+      commands.map { cmd ⇒
         (commandManager ? cmd).mapTo[CommandResponse]
       }
     }
 
-  // Log command response errors
-  private def logCommandErrors(responses: Seq[CommandResponse]) =
-    responses.filter(_.responseType == ERROR).foreach { response ⇒
-      sys.log.error(response.body)
-    }
-
-  // Helper function for parsing a `ttl` duration
-  private def parseTTL(dur: String): Long = Duration(dur).toMillis
-
-  // Helper function for parsing `ttw` values
-  private def parseTTW(ttw: Option[String]): Seq[Long] = {
-    val maybeWarnings: Option[Seq[Long]] = ttw.map(_.split(",").map(Duration(_).toMillis))
-    maybeWarnings.getOrElse(Seq.empty)
-  }
-
-  // Helper function for parsing `tag` values
-  private def parseTags(tags: Option[String]): Seq[String] = {
-    val seq: Option[Seq[String]] = tags.map(_.split(",").toSeq)
-    seq.getOrElse(Seq.empty)
+  // Filter and log any command errors
+  private def logCommandErrors(responses: Seq[CommandResponse]) = {
+    val (errors, nonErrors) = responses.partition(_.responseType == ERROR)
+    errors.foreach(err ⇒ sys.log.error(err.body))
+    nonErrors
   }
 
   // Send a command response error when a task cannot be queued
@@ -78,20 +54,28 @@ final class ApiFunctions(commandManager: ActorRef, queryManager: ActorRef)(impli
       Future.successful(CommandResponse("Buffer overflow: unable to queue task", ERROR))
   }
 
+  // The following Akka Streams implementation batches writes to the command manager, buffering messages until the buffer size
+  // is reached -or- a given amount of time passes. It also limits the number of outstanding asynchronous `ask` calls.
+  val scheduleTaskFlow =
+    Flow[ScheduleTask]
+      .map(setTimestamp)
+      .groupedWithin(GROUP_SIZE, TIME_WINDOW)
+      .mapAsync(PARALLELISM)(sendCommands)
+      .map(logCommandErrors)
+
+  // Use a queue-backed source in front of our Akka streams service
+  private val queue =
+    Source.queue[ScheduleTask](BUFFER_SIZE, OverflowStrategy.backpressure)
+      .via(scheduleTaskFlow)
+      .to(Sink.ignore)
+      .run()
+
   // Offer at ask to the akka streams queue
-  private def offer(task: ScheduleTask) =
+  def queueTask(task: ScheduleTask): Future[CommandResponse] =
     queue.offer(task).map {
       case QueueOfferResult.Enqueued ⇒ CommandResponse("", QUEUED)
       case _ ⇒ CommandResponse("Buffer overflow: unable to queue task", ERROR)
-    }
-
-  // Schedule a task
-  def scheduleTask(key: String, agg: String, ent: String, ttl: String, ttw: Option[String], tags: Option[String], ts: Option[Long]) =
-    commandManager.ask(ScheduleTask(key, agg, ent, parseTTL(ttl), parseTTW(ttw), parseTags(tags), ts)).mapTo[CommandResponse]
-
-  // Asynchronously schedule a task
-  def scheduleTaskAsync(key: String, agg: String, ent: String, ttl: String, ttw: Option[String], tags: Option[String], ts: Option[Long]) =
-    offer(ScheduleTask(key, agg, ent, parseTTL(ttl), parseTTW(ttw), parseTags(tags), ts)).recoverWith(notQueued)
+    } recoverWith notQueued
 
   // Complete a task
   def completeTask(key: String, agg: String, ent: String): Future[CommandResponse] =

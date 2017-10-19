@@ -3,6 +3,7 @@ package org.sofi.deadman.load
 import org.apache.http.HttpResponse
 import org.apache.http.HttpStatus
 import org.apache.http.client.fluent.Request
+import org.apache.http.entity.ContentType
 import org.apache.http.util.EntityUtils
 import scala.util.Try
 
@@ -26,9 +27,16 @@ object Http {
     HttpResp(status, body)
   }
 
-  // Perform a HTTP POST to the given URL without a body
-  def post(url: String) = httpResp(Request.Post(url).execute.returnResponse)
-
   // Perform a HTTP GET on the given URL
   def get(url: String) = httpResp(Request.Get(url).execute().returnResponse())
+
+  // Perform a HTTP POST to the given URL with a JSON body
+  def post(url: String, body: String) = httpResp(
+    Request.Post(url)
+      .connectTimeout(0)
+      .socketTimeout(0)
+      .bodyString(body, ContentType.APPLICATION_JSON)
+      .execute()
+      .returnResponse()
+  )
 }

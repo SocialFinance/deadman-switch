@@ -3,45 +3,29 @@ package org.sofi.deadman.http
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
 import akka.http.scaladsl.model.StatusCodes._
 import akka.http.scaladsl.server.Directives._
-import org.sofi.deadman.messages.command.ResponseType._
+import org.sofi.deadman.messages.command._
+import ResponseType._
+import scala.concurrent.{ExecutionContext, Future}
 
-class HttpRouter(implicit api: ApiFunctions) extends JsonProtocol {
+final class HttpRouter(implicit api: ApiFunctions, ec: ExecutionContext) extends JsonProtocol {
   import api._
 
   // format: OFF
 
   private val schedule =
-    pathPrefix("deadman" / "api" / "v1" / "task") {
-      pathEndOrSingleSlash {
-        post {
-          parameters('k.as[String], 'a.as[String], 'e.as[String], 'x.as[String], 'w.as[String].?, 't.as[String].?, 's.as[Long].?) {
-            (key, agg, ent, ttl, ttw, tags, ts) ⇒
-              onSuccess(scheduleTask(key, agg, ent, ttl, ttw, tags, ts)) { resp ⇒
-                if (resp.responseType == SUCCESS) {
-                  complete(Created -> resp)
-                } else {
-                  complete(BadRequest -> resp)
-                }
-              }
-          }
-        }
+    path("deadman" / "api" / "v1" / "task") {
+      entity(asSourceOf[ScheduleTask]) { source ⇒
+        val scheduled: Future[Int] = source.via(scheduleTaskFlow).runFold(0) { (c, r) ⇒ c + r.size }
+        complete(Created -> scheduled.map(c ⇒ Map("scheduled" -> c)))
       }
     }
 
   private val scheduleAsync =
-    pathPrefix("deadman" / "api" / "v1" / "task" / "async") {
-      pathEndOrSingleSlash {
-        post {
-          parameters('k.as[String], 'a.as[String], 'e.as[String], 'x.as[String], 'w.as[String].?, 't.as[String].?, 's.as[Long].?) {
-            (key, agg, ent, ttl, ttw, tags, ts) ⇒
-              onSuccess(scheduleTaskAsync(key, agg, ent, ttl, ttw, tags, ts)) { resp ⇒
-                if (resp.responseType == QUEUED) {
-                  complete(resp)
-                } else {
-                  complete(ServiceUnavailable -> resp)
-                }
-              }
-          }
+    path("deadman" / "api" / "v1" / "task" / "async") {
+      entity(as[ScheduleTask]) { task ⇒
+        onSuccess(queueTask(task)) { resp ⇒
+          val status = if (resp.responseType == QUEUED) OK else ServiceUnavailable
+          complete(status -> resp)
         }
       }
     }
@@ -108,7 +92,7 @@ class HttpRouter(implicit api: ApiFunctions) extends JsonProtocol {
       }
     }
 
-  private val entity =
+  private val entityRoute =
     pathPrefix("deadman" / "api" / "v1" / "entity" / Segment) { id ⇒
       pathEndOrSingleSlash {
         get {
@@ -196,7 +180,7 @@ class HttpRouter(implicit api: ApiFunctions) extends JsonProtocol {
     aggExpirations ~
     aggWarnings ~
     aggCount ~
-    entity ~
+    entityRoute ~
     entExpirations ~
     entWarnings ~
     entCount ~

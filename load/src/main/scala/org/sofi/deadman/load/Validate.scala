@@ -7,7 +7,7 @@ object Validate extends App {
   var ok = true
 
   // Validate aggregate expiration data
-  (1 to 100).foreach { a ⇒
+  (1 to 10).foreach { a ⇒
     val url = s"http://127.0.0.1:9876/deadman/api/v1/aggregate/$a/expirations"
     val resp = Http.get(url)
     if (resp.status == Http.OK) {
