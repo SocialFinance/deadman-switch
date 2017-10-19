@@ -6,7 +6,7 @@ libraryDependencies ++= Seq(
   "com.rbmhtechnology" %% "eventuate-core"                     % "0.8.1",
   "com.rbmhtechnology" %% "eventuate-log-cassandra"            % "0.8.1",
   "io.getquill"        %% "quill-cassandra"                    % "1.2.1",
-  "com.typesafe.akka"  %% "akka-http"                          % "10.0.8",
+  "com.typesafe.akka"  %% "akka-http"                          % "10.0.10",
   "com.typesafe.akka"  %% "akka-http-spray-json-experimental"  % "2.4.11",
   "com.typesafe.akka"  %% "akka-slf4j"                         % "2.4.18",
   "ch.qos.logback"     %  "logback-classic"                    % "1.1.6",
