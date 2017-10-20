@@ -5,34 +5,45 @@ import com.rbmhtechnology.eventuate.EventsourcedView
 import org.sofi.deadman.messages.event._
 import org.sofi.deadman.messages.query._
 
+object Counter {
+  trait Evt
+  case object Incremented extends Evt
+  case object Decremented extends Evt
+
+  case class CounterState(count: Long) {
+    def updated(cmd: Evt): CounterState = {
+      cmd match {
+        case Incremented ⇒ copy(count + 1)
+        case Decremented ⇒ copy(count - 1)
+      }
+    }
+  }
+}
+
 trait EventCounter extends EventsourcedView with ActorLogging {
 
-  // Actor registry
-  private var registry: Map[String, ActorRef] = Map.empty
+  // CounterState registry
+  private var registry: Map[String, Counter.CounterState] = Map.empty
 
-  // Load an actor
-  protected def actorFor(key: String) =
-    registry.get(key) match {
-      case Some(actor) ⇒ actor
-      case None ⇒
-        registry = registry + (key -> context.actorOf(CounterActor.props(key)))
-        registry(key)
-    }
+  private def stateForKey(key: String) = registry.getOrElse(key, Counter.CounterState(0))
+
+  private def updateStateForKey(key: String, evt: Counter.Evt) =
+    registry = registry + (key -> stateForKey(key).updated(evt))
 
   // Get scheduled task counts
   def onCommand = {
     case query: GetCount ⇒
-      actorFor(query.queryKey) forward query
+      sender() ! Count(stateForKey(query.queryKey).count)
   }
 
   // Update counter service
   def onEvent = {
     case t: Task ⇒
-      actorFor(taskKey(t)) ! CounterActor.Increment
+      updateStateForKey(taskKey(t), Counter.Incremented)
     case t: TaskTermination ⇒
-      actorFor(taskTerminationKey(t)) ! CounterActor.Decrement
+      updateStateForKey(taskTerminationKey(t), Counter.Decremented)
     case TaskExpiration(t, _) ⇒
-      actorFor(taskKey(t)) ! CounterActor.Decrement
+      updateStateForKey(taskKey(t), Counter.Decremented)
   }
 
   // Determine the task query field
