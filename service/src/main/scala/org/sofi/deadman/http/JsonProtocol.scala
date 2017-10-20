@@ -13,6 +13,7 @@ trait JsonProtocol extends DefaultJsonProtocol {
 
   // Command
   implicit val scheduleTaskJsonFormat = jsonFormat7(ScheduleTask.apply)
+  implicit val completeTaskJsonFormat = jsonFormat3(CompleteTask.apply)
   implicit object CommandResponseJsonFormat extends RootJsonFormat[CommandResponse] {
     def write(rep: CommandResponse) = JsObject(Map("body" -> JsString(rep.body), "responseType" -> JsString(rep.responseType.name)))
     def read(json: JsValue) = throw new UnsupportedOperationException("read not supported")

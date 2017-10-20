@@ -78,8 +78,8 @@ final class ApiFunctions(commandManager: ActorRef, queryManager: ActorRef)(impli
     } recoverWith notQueued
 
   // Complete a task
-  def completeTask(key: String, agg: String, ent: String): Future[CommandResponse] =
-    (commandManager ? CompleteTask(key, agg, ent)).mapTo[CommandResponse]
+  def completeTask(completeTask: CompleteTask): Future[CommandResponse] =
+    (commandManager ? completeTask).mapTo[CommandResponse]
 
   // Get all active tasks for the given aggregate ID
   def queryAggregate(id: String): Future[Tasks] =
