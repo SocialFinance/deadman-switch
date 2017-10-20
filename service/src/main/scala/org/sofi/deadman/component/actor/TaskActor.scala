@@ -69,16 +69,17 @@ final class TaskActor(val aggregate: String, val replica: String, val eventLog: 
   // Create persistent events when a command is received
   def onCommand: Receive = {
     case ScheduleTask(key, `aggregate`, entity, ttl, ttw, tags, ts) ⇒
+      val id = uid(aggregate, entity, key)
       if (tasks.keys.size >= MAX_TASKS) {
-        sender() ! CommandResponse(s"Aggregate does not support > $MAX_TASKS tasks", ERROR)
+        sender() ! CommandResponse(s"Aggregate $aggregate does not support > $MAX_TASKS tasks", ERROR)
       } else if (ttl < 1.second.toMillis) {
-        sender() ! CommandResponse("Task ttl must be >= 1 second", ERROR)
+        sender() ! CommandResponse(s"Task $id ttl must be >= 1 second", ERROR)
       } else if (ttw.exists(_ < 1.second.toMillis)) {
-        sender() ! CommandResponse("Task ttw must be >= 1 second", ERROR)
+        sender() ! CommandResponse(s"Task $id ttw must be >= 1 second", ERROR)
       } else if (ttw.exists(_ > ttl)) {
-        sender() ! CommandResponse("Task ttw must be < ttl", ERROR)
+        sender() ! CommandResponse(s"Task $id ttw must be < ttl", ERROR)
       } else {
-        log.info(s"Persisting Task: $aggregate:$entity:$key")
+        log.info(s"Persisting Task: $id")
         persist(Task(key, aggregate, entity, ts.getOrElse(System.currentTimeMillis()), ttl, ttw, tags)) {
           case Success(_) ⇒ sender() ! CommandResponse("", SUCCESS)
           case Failure(err) ⇒

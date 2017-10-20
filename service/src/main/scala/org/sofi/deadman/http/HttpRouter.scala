@@ -14,8 +14,11 @@ final class HttpRouter(implicit api: ApiFunctions, ec: ExecutionContext) extends
   private val schedule =
     path("deadman" / "api" / "v1" / "task") {
       entity(asSourceOf[ScheduleTask]) { source ⇒
-        val scheduled: Future[Int] = source.via(scheduleTaskFlow).runFold(0) { (c, r) ⇒ c + r.size }
-        complete(Created -> scheduled.map(c ⇒ Map("scheduled" -> c)))
+        val scheduled = source.via(scheduleTaskFlow).runFold(Seq.empty[String]) { (s, r) ⇒ s ++ r.map(_.body) }
+        onSuccess(scheduled) { errors ⇒
+          val status = if (errors.nonEmpty) BadRequest else Created
+          complete(status -> Map("errors" -> errors))
+        }
       }
     }
 

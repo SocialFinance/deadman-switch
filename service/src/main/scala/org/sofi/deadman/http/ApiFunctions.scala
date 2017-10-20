@@ -40,18 +40,11 @@ final class ApiFunctions(commandManager: ActorRef, queryManager: ActorRef)(impli
       }
     }
 
-  // Filter and log any command errors
-  private def logCommandErrors(responses: Seq[CommandResponse]) = {
-    val (errors, nonErrors) = responses.partition(_.responseType == ERROR)
-    errors.foreach(err ⇒ sys.log.error(err.body))
-    nonErrors
-  }
-
-  // Send a command response error when a task cannot be queued
-  private val notQueued: PartialFunction[Throwable, Future[CommandResponse]] = {
-    case NonFatal(err) ⇒
-      sys.log.error("Task queue error: {}", err)
-      Future.successful(CommandResponse("Buffer overflow: unable to queue task", ERROR))
+  // Filter and log command errors
+  private def filterErrors(responses: Seq[CommandResponse]) = {
+    val (errors, _) = responses.partition(_.responseType == ERROR)
+    if (errors.nonEmpty) errors.foreach(err ⇒ sys.log.error(err.body))
+    errors
   }
 
   // The following Akka Streams implementation batches writes to the command manager, buffering messages until the buffer size
@@ -61,14 +54,21 @@ final class ApiFunctions(commandManager: ActorRef, queryManager: ActorRef)(impli
       .map(setTimestamp)
       .groupedWithin(GROUP_SIZE, TIME_WINDOW)
       .mapAsync(PARALLELISM)(sendCommands)
-      .map(logCommandErrors)
+      .map(filterErrors)
 
-  // Use a queue-backed source in front of our Akka streams service
+  // Use a queue-backed source in front of our Akka streams flow
   private val queue =
     Source.queue[ScheduleTask](BUFFER_SIZE, OverflowStrategy.backpressure)
       .via(scheduleTaskFlow)
       .to(Sink.ignore)
       .run()
+
+  // Send a command response error when a task cannot be queued
+  private val notQueued: PartialFunction[Throwable, Future[CommandResponse]] = {
+    case NonFatal(err) ⇒
+      sys.log.error("Task queue error: {}", err)
+      Future.successful(CommandResponse("Buffer overflow: unable to queue task", ERROR))
+  }
 
   // Offer at ask to the akka streams queue
   def queueTask(task: ScheduleTask): Future[CommandResponse] =

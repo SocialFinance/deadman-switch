@@ -11,6 +11,7 @@ object Http {
 
   // Task successfully scheduled
   val OK = HttpStatus.SC_OK
+  val CREATED = HttpStatus.SC_CREATED
   val SERVICE_UNAVAILABLE = HttpStatus.SC_SERVICE_UNAVAILABLE
 
   // Captures desired response fields
