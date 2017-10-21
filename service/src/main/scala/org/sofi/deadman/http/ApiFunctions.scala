@@ -9,15 +9,8 @@ import org.sofi.deadman.messages.command._, ResponseType._
 import org.sofi.deadman.messages.query._
 import scala.concurrent.Future
 import scala.concurrent.duration._
-import scala.util.control.NonFatal
 
 final class ApiFunctions(commandManager: ActorRef, queryManager: ActorRef)(implicit val sys: ActorSystem, val t: Timeout, val am: ActorMaterializer) {
-
-  // Execution context
-  import sys.dispatcher
-
-  // Queue buffer constant
-  private val BUFFER_SIZE = 10000
 
   // Stream is chunked into groups of elements received within a time window
   private val GROUP_SIZE = 1000
@@ -32,11 +25,31 @@ final class ApiFunctions(commandManager: ActorRef, queryManager: ActorRef)(impli
   private def setTimestamp(cmd: ScheduleTask) =
     if (cmd.ts.isDefined) cmd else cmd.copy(ts = Some(System.currentTimeMillis()))
 
+  // Perform some basic validation on a ScheduleTask command. This allows us to send commands
+  // without waiting for a response from the command manager.
+  def validate(st: ScheduleTask): Seq[String] = {
+    var errors = Seq.empty[String]
+    if (st.ttl < 1.second.toMillis) {
+      errors = errors :+ s"Task ttl must be >= 1 second"
+    }
+    if (st.ttw.exists(_ < 1.second.toMillis)) {
+      errors = errors :+ s"Task ttw must be >= 1 second"
+    }
+    if (st.ttw.exists(_ > st.ttl)) {
+      errors = errors :+ s"Task ttw must be < ttl"
+    }
+    errors
+  }
+
   // Send a batch to the command manager
   private def sendCommands(commands: Seq[ScheduleTask]) =
-    Future.sequence {
+    Future.successful {
       commands.map { cmd ⇒
-        (commandManager ? cmd).mapTo[CommandResponse]
+        val errors = validate(cmd)
+        if (errors.nonEmpty) CommandResponse(errors.mkString(","), ERROR) else {
+          commandManager ! cmd
+          CommandResponse("", SUCCESS)
+        }
       }
     }
 
@@ -49,37 +62,16 @@ final class ApiFunctions(commandManager: ActorRef, queryManager: ActorRef)(impli
 
   // The following Akka Streams implementation batches writes to the command manager, buffering messages until the buffer size
   // is reached -or- a given amount of time passes. It also limits the number of outstanding asynchronous `ask` calls.
-  val scheduleTaskFlow =
+  val scheduleTask =
     Flow[ScheduleTask]
       .map(setTimestamp)
       .groupedWithin(GROUP_SIZE, TIME_WINDOW)
       .mapAsync(PARALLELISM)(sendCommands)
       .map(filterErrors)
 
-  // Use a queue-backed source in front of our Akka streams flow
-  private val queue =
-    Source.queue[ScheduleTask](BUFFER_SIZE, OverflowStrategy.backpressure)
-      .via(scheduleTaskFlow)
-      .to(Sink.ignore)
-      .run()
-
-  // Send a command response error when a task cannot be queued
-  private val notQueued: PartialFunction[Throwable, Future[CommandResponse]] = {
-    case NonFatal(err) ⇒
-      sys.log.error("Task queue error: {}", err)
-      Future.successful(CommandResponse("Buffer overflow: unable to queue task", ERROR))
-  }
-
-  // Offer at ask to the akka streams queue
-  def queueTask(task: ScheduleTask): Future[CommandResponse] =
-    queue.offer(task).map {
-      case QueueOfferResult.Enqueued ⇒ CommandResponse("", QUEUED)
-      case _ ⇒ CommandResponse("Buffer overflow: unable to queue task", ERROR)
-    } recoverWith notQueued
-
   // Complete a task
-  def completeTask(completeTask: CompleteTask): Future[CommandResponse] =
-    (commandManager ? completeTask).mapTo[CommandResponse]
+  def completeTask(cmd: CompleteTask): Future[CommandResponse] =
+    (commandManager ? cmd).mapTo[CommandResponse]
 
   // Get all active tasks for the given aggregate ID
   def queryAggregate(id: String): Future[Tasks] =

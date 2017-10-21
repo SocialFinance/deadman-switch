@@ -12,9 +12,9 @@ final class HttpRouter(implicit api: ApiFunctions, ec: ExecutionContext) extends
   // format: OFF
 
   private val schedule =
-    path("deadman" / "api" / "v1" / "task") {
+    path("deadman" / "api" / "v1" / "schedule") {
       entity(asSourceOf[ScheduleTask]) { source ⇒
-        val scheduled = source.via(scheduleTaskFlow).runFold(Seq.empty[String]) { (s, r) ⇒ s ++ r.map(_.body) }
+        val scheduled = source.via(scheduleTask).runFold(Seq.empty[String]) { (s, r) ⇒ s ++ r.map(_.body) }
         onSuccess(scheduled) { errors ⇒
           val status = if (errors.nonEmpty) BadRequest else Created
           complete(status -> Map("errors" -> errors))
@@ -22,18 +22,8 @@ final class HttpRouter(implicit api: ApiFunctions, ec: ExecutionContext) extends
       }
     }
 
-  private val scheduleAsync =
-    path("deadman" / "api" / "v1" / "task" / "async") {
-      entity(as[ScheduleTask]) { task ⇒
-        onSuccess(queueTask(task)) { resp ⇒
-          val status = if (resp.responseType == QUEUED) OK else ServiceUnavailable
-          complete(status -> resp)
-        }
-      }
-    }
-
   private val completed =
-    path("deadman" / "api" / "v1" / "task" / "complete") {
+    path("deadman" / "api" / "v1" / "task") {
       entity(as[CompleteTask]) { ct ⇒
         onSuccess(completeTask(ct)) { resp ⇒
           val status = if (resp.responseType == SUCCESS) OK else NotFound
@@ -168,7 +158,6 @@ final class HttpRouter(implicit api: ApiFunctions, ec: ExecutionContext) extends
   // Combine all endpoints
   val routes =
     schedule ~
-    scheduleAsync ~
     completed ~
     aggregate ~
     aggExpirations ~
