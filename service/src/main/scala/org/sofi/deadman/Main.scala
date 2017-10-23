@@ -31,7 +31,8 @@ object Main extends App with Server {
   val location = new NetworkLocation(id)
 
   // Start REST API server
-  implicit val api = new ApiFunctions(location.commandManager, location.queryManager)
+  implicit val commandApi = new CommandApi(location.commandManager)
+  implicit val queryApi = new QueryApi(location.queryManager)
   startup(new HttpRouter().routes)
 
   // If indicated, start interactive CLI
