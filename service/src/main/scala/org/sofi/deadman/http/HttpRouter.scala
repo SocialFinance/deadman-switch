@@ -65,17 +65,6 @@ final class HttpRouter(implicit command: CommandApi, query: QueryApi, am: ActorM
       }
     }
 
-  private val aggCount =
-    pathPrefix("deadman" / "api" / "v1" / "aggregate" / Segment / "count") { id ⇒
-      pathEndOrSingleSlash {
-        get {
-          onSuccess(queryAggregateCount(id)) { count ⇒
-            complete(count)
-          }
-        }
-      }
-    }
-
   private val entityRoute =
     pathPrefix("deadman" / "api" / "v1" / "entity" / Segment) { id ⇒
       pathEndOrSingleSlash {
@@ -109,34 +98,12 @@ final class HttpRouter(implicit command: CommandApi, query: QueryApi, am: ActorM
       }
     }
 
-  private val entCount =
-    pathPrefix("deadman" / "api" / "v1" / "entity" / Segment / "count") { id ⇒
-      pathEndOrSingleSlash {
-        get {
-          onSuccess(queryEntityCount(id)) { count ⇒
-            complete(count)
-          }
-        }
-      }
-    }
-
   private val key =
     pathPrefix("deadman" / "api" / "v1" / "key" / Segment) { key ⇒
       pathEndOrSingleSlash {
         get {
           onSuccess(queryKey(key)) { tasks ⇒
             complete(tasks)
-          }
-        }
-      }
-    }
-
-  private val keyCount =
-    pathPrefix("deadman" / "api" / "v1" / "key" / Segment / "count") { key ⇒
-      pathEndOrSingleSlash {
-        get {
-          onSuccess(queryKeyCount(key)) { count ⇒
-            complete(count)
           }
         }
       }
@@ -162,13 +129,10 @@ final class HttpRouter(implicit command: CommandApi, query: QueryApi, am: ActorM
     aggregate ~
     aggExpirations ~
     aggWarnings ~
-    aggCount ~
     entityRoute ~
     entExpirations ~
     entWarnings ~
-    entCount ~
     key ~
-    keyCount ~
     tags
 
   // format: ON

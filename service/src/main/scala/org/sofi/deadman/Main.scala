@@ -61,10 +61,6 @@ private final class CommandLine(val commandManager: ActorRef, val queryManager: 
       }
       prompt()
 
-    case Count(count) ⇒
-      log.info(s"Found $count tasks")
-      prompt()
-
     // Process CLI and send commands and/or queries
     case line: String ⇒ line.trim.split(' ').toList match {
 
@@ -106,16 +102,7 @@ private final class CommandLine(val commandManager: ActorRef, val queryManager: 
       case "query" :: "warnings" :: "entity" :: id :: Nil ⇒
         queryManager ! GetWarnings(QueryType.ENTITY, entity = Some(id))
 
-      // Query for task counts
-
-      case "count" :: "aggregate" :: id :: Nil ⇒
-        queryManager ! GetCount(QueryType.AGGREGATE, aggregate = Some(id))
-
-      case "count" :: "entity" :: id :: Nil ⇒
-        queryManager ! GetCount(QueryType.ENTITY, entity = Some(id))
-
-      case "count" :: "key" :: value :: Nil ⇒
-        queryManager ! GetCount(QueryType.KEY, key = Some(value))
+      // Catch-all prompt
 
       case _ ⇒
         prompt()

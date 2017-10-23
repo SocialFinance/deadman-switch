@@ -45,18 +45,4 @@ final class QueryApi(queryManager: ActorRef)(implicit val sys: ActorSystem, val 
   // Get all task warnings for the given entity ID
   def queryEntityWarnings(id: String): Future[Tasks] =
     (queryManager ? GetWarnings(QueryType.ENTITY, entity = Some(id))).mapTo[Tasks]
-
-  // Counts ---------------------------------------------------------------------------------------------------------------------------
-
-  // Count all scheduled tasks for the given aggregate ID
-  def queryAggregateCount(id: String): Future[Count] =
-    (queryManager ? GetCount(QueryType.AGGREGATE, aggregate = Some(id))).mapTo[Count]
-
-  // Count all task warnings for the given entity ID
-  def queryEntityCount(id: String): Future[Count] =
-    (queryManager ? GetCount(QueryType.ENTITY, entity = Some(id))).mapTo[Count]
-
-  // Count all scheduled tasks for the given key
-  def queryKeyCount(value: String): Future[Count] =
-    (queryManager ? GetCount(QueryType.KEY, key = Some(value))).mapTo[Count]
 }

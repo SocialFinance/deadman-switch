@@ -25,5 +25,4 @@ trait JsonProtocol extends DefaultJsonProtocol {
 
   // Query
   implicit val tasksJsonFormat = jsonFormat1(Tasks.apply)
-  implicit val countJsonFormat = jsonFormat1(Count.apply)
 }

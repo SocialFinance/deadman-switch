@@ -12,14 +12,4 @@ package object query {
         case _ ⇒ gt.aggregate
       }
   }
-
-  // Determine the `GetCount` query key field based on type
-  implicit class GetCountOps(val gc: GetCount) extends AnyVal {
-    def queryKey: String =
-      gc.queryType match {
-        case QueryType.ENTITY ⇒ gc.entity.getOrElse("")
-        case QueryType.KEY ⇒ gc.key.getOrElse("")
-        case _ ⇒ gc.aggregate.getOrElse("")
-      }
-  }
 }
