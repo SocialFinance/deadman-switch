@@ -31,10 +31,17 @@ A series of custom task identifiers. These can be used to arbitrarily query expi
 tasks within a time window (day, week, or month). Tags must be lower case and contain
 no spaces or special characters.
 
+## TODO
+
+- Java annotations lib: Add the ablity to annotate java methods with @Schedule and @Complete
+- User Interface: Create a Play Scala web applicatoin for querying expirations and warnings
+- Play Scala lib: Add actions for scheduling and completing tasks (optional)
+
 ## References
 
 - [Akka](https://akka.io/)
 - [Cassandra](https://cassandra.apache.org/)
+- [Cats](https://typelevel.github.io/cats/)
 - [Eventuate](https://rbmhtechnology.github.io/eventuate/)
 - [Protocol Buffers](https://developers.google.com/protocol-buffers/)
 - [Quill](http://getquill.io/)
