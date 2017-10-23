@@ -6,7 +6,7 @@ import akka.util.Timeout
 import org.sofi.deadman.http._
 import org.sofi.deadman.location.NetworkLocation
 import org.sofi.deadman.messages.command._
-import org.sofi.deadman.messages.query._
+import org.sofi.deadman.messages.query._, QueryType._
 import com.typesafe.config.ConfigFactory
 import scala.concurrent.duration.{ Duration, FiniteDuration }
 import scala.io.Source
@@ -47,8 +47,8 @@ private final class CommandLine(val commandManager: ActorRef, val queryManager: 
   def receive = {
 
     // Command successes and errors
-    case CommandResponse(msg, typ) ⇒
-      log.info(s"Command Response: $typ $msg".trim)
+    case CommandResponse(typ, msg) ⇒
+      log.info("Command Response: {}", s"$typ ${msg.mkString(",")}".trim)
       prompt()
 
     // Query results
@@ -75,21 +75,21 @@ private final class CommandLine(val commandManager: ActorRef, val queryManager: 
       // Query scheduled tasks
 
       case "query" :: "scheduled" :: "aggregate" :: id :: Nil ⇒
-        queryManager ! GetTasks(QueryType.AGGREGATE, aggregate = Some(id))
+        queryManager ! GetTasks(AGGREGATE, aggregate = Some(id))
 
       case "query" :: "scheduled" :: "entity" :: id :: Nil ⇒
-        queryManager ! GetTasks(QueryType.ENTITY, entity = Some(id))
+        queryManager ! GetTasks(ENTITY, entity = Some(id))
 
       case "query" :: "scheduled" :: "key" :: value :: Nil ⇒
-        queryManager ! GetTasks(QueryType.KEY, key = Some(value))
+        queryManager ! GetTasks(KEY, key = Some(value))
 
       // Query expired tasks
 
       case "query" :: "expired" :: "aggregate" :: id :: Nil ⇒
-        queryManager ! GetExpirations(QueryType.AGGREGATE, aggregate = Some(id))
+        queryManager ! GetExpirations(AGGREGATE, aggregate = Some(id))
 
       case "query" :: "expired" :: "entity" :: id :: Nil ⇒
-        queryManager ! GetExpirations(QueryType.ENTITY, entity = Some(id))
+        queryManager ! GetExpirations(ENTITY, entity = Some(id))
 
       case "query" :: "expired" :: "tag" :: tag :: window :: Nil ⇒
         queryManager ! GetTags(tag, window)
@@ -97,10 +97,10 @@ private final class CommandLine(val commandManager: ActorRef, val queryManager: 
       // Query task warnings
 
       case "query" :: "warnings" :: "aggregate" :: id :: Nil ⇒
-        queryManager ! GetWarnings(QueryType.AGGREGATE, aggregate = Some(id))
+        queryManager ! GetWarnings(AGGREGATE, aggregate = Some(id))
 
       case "query" :: "warnings" :: "entity" :: id :: Nil ⇒
-        queryManager ! GetWarnings(QueryType.ENTITY, entity = Some(id))
+        queryManager ! GetWarnings(ENTITY, entity = Some(id))
 
       // Catch-all prompt
 

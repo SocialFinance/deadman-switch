@@ -11,14 +11,15 @@ object Load extends App {
   private def scheduleTasks(a: Int): Future[Unit] = Future {
     val s = System.currentTimeMillis() // Use a base start timestamp for each aggregate task
     val tasks = (1 to 100).map { j ⇒
+      val ts = s + j
       Map[String, Any](
         "key" -> s"task$j",
         "aggregate" -> s"$a",
         "entity" -> s"${a - 1}",
-        "ttl" -> (if (a < 33) 3.minutes else if (a > 66) 2.minutes else 1.minute).toMillis,
+        "ttl" -> 10.minutes.toMillis,
         "ttw" -> Seq.empty,
         "tags" -> Seq.empty,
-        "ts" -> s
+        "ts" -> ts
       )
     }
     println(s"Scheduling tasks for aggregate: $a")
@@ -31,7 +32,7 @@ object Load extends App {
   // Schedule tasks for a range of aggregates
   def scheduleAggregates() =
     Future.sequence {
-      (1 to 10).map(scheduleTasks)
+      (1 to 100).map(scheduleTasks)
     }
 
   // Wait until complete
