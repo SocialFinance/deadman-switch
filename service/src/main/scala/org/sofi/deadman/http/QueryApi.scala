@@ -12,7 +12,7 @@ final class QueryApi(queryManager: ActorRef)(implicit val sys: ActorSystem, val 
 
   // Get all active tasks for the given aggregate ID
   def queryAggregate(id: String): Future[Tasks] =
-  (queryManager ? GetTasks(QueryType.AGGREGATE, aggregate = Some(id))).mapTo[Tasks]
+    (queryManager ? GetTasks(QueryType.AGGREGATE, aggregate = Some(id))).mapTo[Tasks]
 
   // Get all scheduled tasks for the given entity ID
   def queryEntity(id: String): Future[Tasks] =
@@ -40,7 +40,7 @@ final class QueryApi(queryManager: ActorRef)(implicit val sys: ActorSystem, val 
 
   // Get all task warnings for the given aggregate ID
   def queryAggregateWarnings(id: String): Future[Tasks] =
-  (queryManager ? GetWarnings(QueryType.AGGREGATE, aggregate = Some(id))).mapTo[Tasks]
+    (queryManager ? GetWarnings(QueryType.AGGREGATE, aggregate = Some(id))).mapTo[Tasks]
 
   // Get all task warnings for the given entity ID
   def queryEntityWarnings(id: String): Future[Tasks] =

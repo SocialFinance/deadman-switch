@@ -14,9 +14,9 @@ final class AggregateCounterTest extends TestSystem {
   "An aggregate counter" must {
     "Successfully count Task events" in {
       taskActor ! ScheduleTask("test", aggregate, "0", 10.days.toMillis)
-      expectMsg(CommandResponse("", ResponseType.SUCCESS))
+      expectMsg(CommandResponse(ResponseType.SUCCESS))
       taskActor ! ScheduleTask("test", aggregate, "1", 10.days.toMillis)
-      expectMsg(CommandResponse("", ResponseType.SUCCESS))
+      expectMsg(CommandResponse(ResponseType.SUCCESS))
       counterActor ! GetCount(QueryType.AGGREGATE, aggregate = Some(aggregate))
       expectMsgPF() {
         case Count(count) ⇒

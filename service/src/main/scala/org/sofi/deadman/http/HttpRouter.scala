@@ -14,16 +14,16 @@ final class HttpRouter(implicit command: CommandApi, query: QueryApi, am: ActorM
   private val schedule =
     path("deadman" / "api" / "v1" / "schedule") {
       entity(asSourceOf[ScheduleTask]) { source ⇒
-        val scheduled = source.via(scheduleTask).runFold(Seq.empty[String]) { (s, r) ⇒ s ++ r.map(_.body) }
+        val scheduled = source.via(scheduleTaskFlow).runFold(Seq.empty[Seq[String]]) { (s, r) ⇒ s ++ r.map(_.errors) }
         onSuccess(scheduled) { errors ⇒
-          val status = if (errors.nonEmpty) BadRequest else Created
+          val status = if (errors.exists(_.nonEmpty)) BadRequest else Created
           complete(status -> Map("errors" -> errors))
         }
       }
     }
 
   private val completed =
-    path("deadman" / "api" / "v1" / "task") {
+    path("deadman" / "api" / "v1" / "complete") {
       entity(as[CompleteTask]) { ct ⇒
         onSuccess(completeTask(ct)) { resp ⇒
           val status = if (resp.responseType == SUCCESS) OK else NotFound

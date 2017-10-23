@@ -40,6 +40,6 @@ enum ResponseType {
 }
 
 message CommandResponse {
-    required string body = 1;
-    required ResponseType responseType = 2 [default = SUCCESS];
+    required ResponseType responseType = 1 [default = SUCCESS];
+    repeated string errors = 2;
 }

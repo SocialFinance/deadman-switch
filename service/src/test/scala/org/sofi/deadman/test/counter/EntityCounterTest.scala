@@ -14,9 +14,9 @@ final class EntityCounterTest extends TestSystem {
   "An entity counter" must {
     "Successfully count Task events" in {
       taskActor ! ScheduleTask("test1", aggregate, "0", 10.days.toMillis)
-      expectMsg(CommandResponse("", ResponseType.SUCCESS))
+      expectMsg(CommandResponse(ResponseType.SUCCESS))
       taskActor ! ScheduleTask("test2", aggregate, "0", 10.days.toMillis)
-      expectMsg(CommandResponse("", ResponseType.SUCCESS))
+      expectMsg(CommandResponse(ResponseType.SUCCESS))
       counterActor ! GetCount(QueryType.ENTITY, entity = Some("0"))
       expectMsgPF() {
         case Count(count) ⇒

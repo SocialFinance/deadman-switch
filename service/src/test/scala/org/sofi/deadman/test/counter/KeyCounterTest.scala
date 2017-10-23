@@ -14,9 +14,9 @@ final class KeyCounterTest extends TestSystem {
   "A key counter" must {
     "Successfully count Task events" in {
       taskActor ! ScheduleTask("test", aggregate, "0", 10.days.toMillis)
-      expectMsg(CommandResponse("", ResponseType.SUCCESS))
+      expectMsg(CommandResponse(ResponseType.SUCCESS))
       taskActor ! ScheduleTask("test", aggregate, "0", 10.days.toMillis)
-      expectMsg(CommandResponse("", ResponseType.SUCCESS))
+      expectMsg(CommandResponse(ResponseType.SUCCESS))
       counterActor ! GetCount(QueryType.KEY, key = Some("test"))
       expectMsgPF() {
         case Count(count) ⇒

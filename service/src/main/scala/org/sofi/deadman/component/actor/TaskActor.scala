@@ -71,32 +71,26 @@ final class TaskActor(val aggregate: String, val replica: String, val eventLog: 
     case ScheduleTask(key, `aggregate`, entity, ttl, ttw, tags, ts) ⇒
       val id = uid(aggregate, entity, key)
       if (tasks.keys.size >= MAX_TASKS) {
-        sender() ! CommandResponse(s"Aggregate $aggregate does not support > $MAX_TASKS tasks", ERROR)
-      } else if (ttl < 1.second.toMillis) {
-        sender() ! CommandResponse(s"Task $id ttl must be >= 1 second", ERROR)
-      } else if (ttw.exists(_ < 1.second.toMillis)) {
-        sender() ! CommandResponse(s"Task $id ttw must be >= 1 second", ERROR)
-      } else if (ttw.exists(_ > ttl)) {
-        sender() ! CommandResponse(s"Task $id ttw must be < ttl", ERROR)
+        sender() ! CommandResponse(ERROR, Seq(s"Aggregate $aggregate does not support > $MAX_TASKS tasks"))
       } else {
         log.info(s"Persisting Task: $id")
         persist(Task(key, aggregate, entity, ts.getOrElse(System.currentTimeMillis()), ttl, ttw, tags)) {
-          case Success(_) ⇒ sender() ! CommandResponse("", SUCCESS)
+          case Success(_) ⇒ sender() ! CommandResponse(SUCCESS)
           case Failure(err) ⇒
             log.error("Unable to persist task {}", err)
-            sender() ! CommandResponse(err.getMessage, ERROR)
+            sender() ! CommandResponse(ERROR, Seq(err.getMessage))
         }
       }
     case CompleteTask(key, `aggregate`, entity) ⇒
       val id = uid(aggregate, entity, key)
       if (!tasks.contains(id)) {
-        sender() ! CommandResponse(s"Task not found: $id", ERROR)
+        sender() ! CommandResponse(ERROR, Seq(s"Task not found: $id"))
       } else {
         persist(TaskTermination(key, aggregate, entity)) {
-          case Success(_) ⇒ sender() ! CommandResponse("", SUCCESS)
+          case Success(_) ⇒ sender() ! CommandResponse(SUCCESS)
           case Failure(err) ⇒
             log.error("Unable to persist task termination {}", err)
-            sender() ! CommandResponse(err.getMessage, ERROR)
+            sender() ! CommandResponse(ERROR, Seq(err.getMessage))
         }
       }
     case ExpireTask(task) ⇒

@@ -8,11 +8,11 @@ final class TaskActorTest extends TestSystem {
   "A task actor" must {
     "Successfully schedule a task" in {
       taskActor ! ScheduleTask("test", aggregate, "0", 10.days.toMillis)
-      expectMsg(CommandResponse("", ResponseType.SUCCESS))
+      expectMsg(CommandResponse(ResponseType.SUCCESS))
     }
     "Successfully complete a task" in {
       taskActor ! CompleteTask("test", aggregate, "0")
-      expectMsg(CommandResponse("", ResponseType.SUCCESS))
+      expectMsg(CommandResponse(ResponseType.SUCCESS))
     }
   }
 }

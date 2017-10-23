@@ -20,7 +20,7 @@ final class TaskTerminationTest extends TestSystem {
     "Successfully persist a task termination event" in {
       system.actorOf(Props(new TaskTerminationForwarder(aggregate, eventLog)))
       taskActor ! ScheduleTask("test", aggregate, "0", 10.days.toMillis)
-      expectMsg(CommandResponse("", ResponseType.SUCCESS))
+      expectMsg(CommandResponse(ResponseType.SUCCESS))
       taskActor ! CompleteTask("test", aggregate, "0")
       // TODO: Why don't we get the command response?
       expectMsg(TaskTermination("test", aggregate, "0"))
