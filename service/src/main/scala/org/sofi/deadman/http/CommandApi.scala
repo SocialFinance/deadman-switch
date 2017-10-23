@@ -5,10 +5,11 @@ import akka.pattern.ask
 import akka.stream._
 import akka.stream.scaladsl._
 import akka.util.Timeout
+import cats.data.Validated._
 import org.sofi.deadman.messages.command._, ResponseType._
+import org.sofi.deadman.messages.validation._
 import scala.concurrent.Future
 import scala.concurrent.duration._
-import scala.util.Try
 
 final class CommandApi(commandManager: ActorRef)(implicit val system: ActorSystem, val timeout: Timeout) {
 
@@ -22,56 +23,34 @@ final class CommandApi(commandManager: ActorRef)(implicit val system: ActorSyste
   private val TIME_WINDOW = 1.second
 
   // Make sure the command timestamp is set
-  private def setTimestamp(task: ScheduleTask) =
-    if (task.ts.isDefined) task else task.copy(ts = Some(System.currentTimeMillis()))
+  private def setTimestamp(req: ScheduleRequest) =
+    if (req.ts.isDefined) req else req.copy(ts = Some(System.currentTimeMillis()))
 
-  // Perform some basic validation on a ScheduleTask command. This allows us to send commands
-  // without waiting for a response from the command manager.
-  private def validate(task: ScheduleTask): Either[Seq[String], ScheduleTask] = {
-    var errors = Seq.empty[String]
-    if (Try(task.aggregate.trim).getOrElse("").isEmpty) {
-      errors = errors :+ s"Aggregate cannot be empty"
-    }
-    if (Try(task.entity.trim).getOrElse("").isEmpty) {
-      errors = errors :+ s"Entity cannot be empty"
-    }
-    if (Try(task.key.trim).getOrElse("").isEmpty) {
-      errors = errors :+ s"Key cannot be empty"
-    }
-    if (task.ttl < 1.second.toMillis) {
-      errors = errors :+ s"Task ttl must be >= 1 second"
-    }
-    if (task.ttw.exists(_ < 1.second.toMillis)) {
-      errors = errors :+ s"Task ttw must be >= 1 second"
-    }
-    if (task.ttw.exists(_ > task.ttl)) {
-      errors = errors :+ s"Task ttw must be < ttl"
-    }
-    if (errors.nonEmpty) Left(errors) else Right(task)
-  }
-
-  // Send a batch to the command manager
-  private def scheduleTasks(tasks: Seq[ScheduleTask]) =
-    tasks.map { task ⇒
-      validate(task) match {
-        case Left(errors) ⇒ CommandResponse(ERROR, errors)
-        case Right(_) ⇒
+  // Send a batch of ScheduleTask commands to the command manager
+  private def scheduleTasks(requests: Seq[ScheduleRequest]) =
+    requests.map { r ⇒
+      validate(r.key, r.aggregate, r.entity, r.ttl, r.ttw, r.tags, r.ts) match {
+        case Invalid(nel) ⇒ CommandResponse(ERROR, nel.map(_.error).toList)
+        case Valid(task) ⇒
           commandManager ! task
           CommandResponse(QUEUED)
       }
     }
 
   // Log all command errors
-  private def logErrors(responses: Seq[CommandResponse]) = {
-    val (errors, _) = responses.partition(_.responseType == ERROR)
-    if (errors.nonEmpty) errors.foreach(err ⇒ system.log.error(err.errors.mkString(",")))
-    responses
+  private def logErrors(reps: Seq[CommandResponse]) = {
+    reps.foreach { rep ⇒
+      if (rep.responseType == ERROR) {
+        system.log.error(rep.errors.mkString(","))
+      }
+    }
+    reps
   }
 
   // The following Akka Streams implementation batches writes to the command manager, buffering messages until the buffer size
   // is reached -or- a given amount of time passes. It also limits the number of outstanding asynchronous `ask` calls.
   val scheduleTaskFlow =
-    Flow[ScheduleTask]
+    Flow[ScheduleRequest]
       .buffer(BUFFER_SIZE, OverflowStrategy.backpressure)
       .map(setTimestamp)
       .groupedWithin(GROUP_SIZE, TIME_WINDOW)
@@ -79,6 +58,9 @@ final class CommandApi(commandManager: ActorRef)(implicit val system: ActorSyste
       .map(logErrors)
 
   // Complete a task
-  def completeTask(cmd: CompleteTask): Future[CommandResponse] =
-    (commandManager ? cmd).mapTo[CommandResponse]
+  def completeTask(req: CompleteRequest): Future[CommandResponse] =
+    validateCompletion(req.key, req.aggregate, req.entity) match {
+      case Invalid(nel) ⇒ Future.successful(CommandResponse(ERROR, nel.map(_.error).toList))
+      case Valid(command) ⇒ (commandManager ? command).mapTo[CommandResponse]
+    }
 }

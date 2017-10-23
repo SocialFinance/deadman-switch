@@ -12,8 +12,8 @@ trait JsonProtocol extends DefaultJsonProtocol {
   implicit val jsonStreamingSupport = EntityStreamingSupport.json()
 
   // Command
-  implicit val scheduleTaskJsonFormat = jsonFormat7(ScheduleTask.apply)
-  implicit val completeTaskJsonFormat = jsonFormat3(CompleteTask.apply)
+  implicit val scheduleRequestJsonFormat = jsonFormat7(ScheduleRequest.apply)
+  implicit val completeRequestJsonFormat = jsonFormat3(CompleteRequest.apply)
   implicit object CommandResponseJsonFormat extends RootJsonFormat[CommandResponse] {
     def write(rep: CommandResponse) =
       JsObject(Map("errors" -> JsArray(rep.errors.map(JsString.apply).toVector), "responseType" -> JsString(rep.responseType.name)))
