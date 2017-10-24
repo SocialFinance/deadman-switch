@@ -31,8 +31,19 @@ final class CommandApi(commandManager: ActorRef)(implicit val system: ActorSyste
     requests.map { r ⇒
       validate(r.key, r.aggregate, r.entity, r.ttl, r.ttw, r.tags, r.ts) match {
         case Invalid(nel) ⇒ CommandResponse(ERROR, nel.map(_.error).toList)
-        case Valid(task) ⇒
-          commandManager ! task
+        case Valid(command) ⇒
+          commandManager ! command
+          CommandResponse(QUEUED)
+      }
+    }
+
+  // Send a batch of CompleteTask commands to the command manager
+  private def completeTasks(requests: Seq[CompleteRequest]) =
+    requests.map { r =>
+      validateCompletion(r.key, r.aggregate, r.entity) match {
+        case Invalid(nel) ⇒ CommandResponse(ERROR, nel.map(_.error).toList)
+        case Valid(command) ⇒
+          commandManager ! command
           CommandResponse(QUEUED)
       }
     }
@@ -47,8 +58,10 @@ final class CommandApi(commandManager: ActorRef)(implicit val system: ActorSyste
     reps
   }
 
-  // The following Akka Streams implementation batches writes to the command manager, buffering messages until the buffer size
-  // is reached -or- a given amount of time passes. It also limits the number of outstanding asynchronous `ask` calls.
+  // The following Akka Streams implementations batch writes to the command manager, buffering messages until the buffer size
+  // is reached -or- a given amount of time passes.
+
+  // Task scheduling flow
   val scheduleTaskFlow =
     Flow[ScheduleRequest]
       .buffer(BUFFER_SIZE, OverflowStrategy.backpressure)
@@ -57,10 +70,11 @@ final class CommandApi(commandManager: ActorRef)(implicit val system: ActorSyste
       .map(scheduleTasks)
       .map(logErrors)
 
-  // Complete a task
-  def completeTask(req: CompleteRequest): Future[CommandResponse] =
-    validateCompletion(req.key, req.aggregate, req.entity) match {
-      case Invalid(nel) ⇒ Future.successful(CommandResponse(ERROR, nel.map(_.error).toList))
-      case Valid(command) ⇒ (commandManager ? command).mapTo[CommandResponse]
-    }
+  // Task completion flow
+  val completeTaskFlow =
+    Flow[CompleteRequest]
+      .buffer(BUFFER_SIZE, OverflowStrategy.backpressure)
+      .groupedWithin(GROUP_SIZE, TIME_WINDOW)
+      .map(completeTasks)
+      .map(logErrors)
 }

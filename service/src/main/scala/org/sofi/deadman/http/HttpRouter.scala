@@ -4,7 +4,6 @@ import akka.stream.ActorMaterializer
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
 import akka.http.scaladsl.model.StatusCodes._
 import akka.http.scaladsl.server.Directives._
-import org.sofi.deadman.messages.command._, ResponseType._
 
 final class HttpRouter(implicit command: CommandApi, query: QueryApi, am: ActorMaterializer) extends JsonProtocol {
   import command._, query._
@@ -24,15 +23,16 @@ final class HttpRouter(implicit command: CommandApi, query: QueryApi, am: ActorM
 
   private val completed =
     path("deadman" / "api" / "v1" / "complete") {
-      entity(as[CompleteRequest]) { req ⇒
-        onSuccess(completeTask(req)) { resp ⇒
-          val status = if (resp.responseType == SUCCESS) OK else NotFound
-          complete(status -> resp)
+      entity(asSourceOf[CompleteRequest]) { source ⇒
+        val completed = source.via(completeTaskFlow).runFold(Seq.empty[Seq[String]]) { (s, r) ⇒ s ++ r.map(_.errors) }
+        onSuccess(completed) { errors ⇒
+          val status = if (errors.exists(_.nonEmpty)) BadRequest else OK
+          complete(status -> Map("errors" -> errors))
         }
       }
     }
 
-  private val aggregate =
+  private val aggregates =
     pathPrefix("deadman" / "api" / "v1" / "aggregate" / Segment) { id ⇒
       pathEndOrSingleSlash {
         get {
@@ -43,7 +43,7 @@ final class HttpRouter(implicit command: CommandApi, query: QueryApi, am: ActorM
       }
     }
 
-  private val aggExpirations =
+  private val expirations =
     pathPrefix("deadman" / "api" / "v1" / "aggregate" / Segment / "expirations") { id ⇒
       pathEndOrSingleSlash {
         get {
@@ -54,7 +54,7 @@ final class HttpRouter(implicit command: CommandApi, query: QueryApi, am: ActorM
       }
     }
 
-  private val aggWarnings =
+  private val warnings =
     pathPrefix("deadman" / "api" / "v1" / "aggregate" / Segment / "warnings") { id ⇒
       pathEndOrSingleSlash {
         get {
@@ -65,7 +65,7 @@ final class HttpRouter(implicit command: CommandApi, query: QueryApi, am: ActorM
       }
     }
 
-  private val entityRoute =
+  private val entities =
     pathPrefix("deadman" / "api" / "v1" / "entity" / Segment) { id ⇒
       pathEndOrSingleSlash {
         get {
@@ -76,7 +76,7 @@ final class HttpRouter(implicit command: CommandApi, query: QueryApi, am: ActorM
       }
     }
 
-  private val entExpirations =
+  private val entityExpirations =
     pathPrefix("deadman" / "api" / "v1" / "entity" / Segment / "expirations") { id ⇒
       pathEndOrSingleSlash {
         get {
@@ -87,7 +87,7 @@ final class HttpRouter(implicit command: CommandApi, query: QueryApi, am: ActorM
       }
     }
 
-  private val entWarnings =
+  private val entityWarnings =
     pathPrefix("deadman" / "api" / "v1" / "entity" / Segment / "warnings") { id ⇒
       pathEndOrSingleSlash {
         get {
@@ -123,17 +123,7 @@ final class HttpRouter(implicit command: CommandApi, query: QueryApi, am: ActorM
     }
 
   // Combine all endpoints
-  val routes =
-    schedule ~
-    completed ~
-    aggregate ~
-    aggExpirations ~
-    aggWarnings ~
-    entityRoute ~
-    entExpirations ~
-    entWarnings ~
-    key ~
-    tags
+  val routes = schedule ~ completed ~ aggregates ~ expirations ~ warnings ~ entities ~ entityExpirations ~ entityWarnings ~ key ~ tags
 
   // format: ON
 }
