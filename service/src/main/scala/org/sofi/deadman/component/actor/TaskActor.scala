@@ -84,6 +84,7 @@ final class TaskActor(val aggregate: String, val replica: String, val eventLog: 
     case CompleteTask(key, `aggregate`, entity) ⇒
       val id = uid(aggregate, entity, key)
       if (!tasks.contains(id)) {
+        log.error("Task not found: {}", id)
         sender() ! CommandResponse(ERROR, Seq(s"Task not found: $id"))
       } else {
         persist(TaskTermination(key, aggregate, entity)) {

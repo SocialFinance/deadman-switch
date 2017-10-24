@@ -9,7 +9,11 @@ package object validation {
 
   // String field must be non-empty
   private def validateString(field: String, value: String) =
-    if (Try(value).getOrElse("").nonEmpty) value.validNel else InvalidString(field).invalidNel
+    if (Try(value.trim).getOrElse("").nonEmpty) value.validNel else InvalidString(field).invalidNel
+
+  // Key must be non-empty strings with only upper-case chars, lower-case chars and numbers
+  private def validateKey(key: String) =
+    if (Try(key.trim).getOrElse("").matches("^[a-zA-Z0-9]+$")) key.validNel else InvalidKey.invalidNel
 
   // TTL must be longer than one second
   private def validateTTL(ttl: Long) =
@@ -28,11 +32,20 @@ package object validation {
     if (ts.getOrElse(System.currentTimeMillis()) > 0) ts.validNel else InvalidTimestamp.invalidNel
 
   // Validate data fields and map them to a ScheduleTask command
-  def validate(key: String, agg: String, ent: String, ttl: Long, ttw: Seq[Long], tags: Seq[String], ts: Option[Long]) =
-    (validateString("key", key), validateString("aggregate", agg), validateString("entity", ent), validateTTL(ttl),
-      validateTTW(ttw, ttl), validateTags(tags), validateTimestamp(ts)).mapN(ScheduleTask.apply)
+  def validate(key: String, agg: String, ent: String, ttl: Long, ttw: Seq[Long], tags: Seq[String], ts: Option[Long]) = (
+    validateKey(key),
+    validateString("aggregate", agg),
+    validateString("entity", ent),
+    validateTTL(ttl),
+    validateTTW(ttw, ttl),
+    validateTags(tags),
+    validateTimestamp(ts)
+  ).mapN(ScheduleTask.apply)
 
   // Validate data fields and map them to a CompleteTask command
-  def validateCompletion(key: String, agg: String, ent: String) =
-    (validateString("key", key), validateString("aggregate", agg), validateString("entity", ent)).mapN(CompleteTask.apply)
+  def validateCompletion(key: String, agg: String, ent: String) = (
+    validateKey(key),
+    validateString("aggregate", agg),
+    validateString("entity", ent)
+  ).mapN(CompleteTask.apply)
 }
