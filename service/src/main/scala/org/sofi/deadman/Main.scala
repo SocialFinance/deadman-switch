@@ -41,8 +41,7 @@ object Main extends App with Server {
   }
 }
 
-private final class CommandLine(val commandManager: ActorRef, val queryManager: ActorRef)
-  extends Actor with ActorLogging {
+private final class CommandLine(val commandManager: ActorRef, val queryManager: ActorRef) extends Actor with ActorLogging {
 
   def receive = {
 
@@ -74,13 +73,13 @@ private final class CommandLine(val commandManager: ActorRef, val queryManager: 
 
       // Query scheduled tasks
 
-      case "query" :: "scheduled" :: "aggregate" :: id :: Nil ⇒
+      case "query" :: "aggregate" :: id :: Nil ⇒
         queryManager ! GetTasks(AGGREGATE, aggregate = Some(id))
 
-      case "query" :: "scheduled" :: "entity" :: id :: Nil ⇒
+      case "query" :: "entity" :: id :: Nil ⇒
         queryManager ! GetTasks(ENTITY, entity = Some(id))
 
-      case "query" :: "scheduled" :: "key" :: value :: Nil ⇒
+      case "query" :: "key" :: value :: Nil ⇒
         queryManager ! GetTasks(KEY, key = Some(value))
 
       // Query expired tasks
@@ -127,6 +126,5 @@ private final class CommandLine(val commandManager: ActorRef, val queryManager: 
 }
 
 object CommandLine {
-  def props(commandManager: ActorRef, queryManager: ActorRef): Props =
-    Props(new CommandLine(commandManager, queryManager))
+  def props(commandManager: ActorRef, queryManager: ActorRef): Props = Props(new CommandLine(commandManager, queryManager))
 }
