@@ -1,14 +1,12 @@
 package org.sofi.deadman.http
 
 import akka.actor._
-import akka.pattern.ask
 import akka.stream._
 import akka.stream.scaladsl._
 import akka.util.Timeout
 import cats.data.Validated._
 import org.sofi.deadman.messages.command._, ResponseType._
 import org.sofi.deadman.messages.validation._
-import scala.concurrent.Future
 import scala.concurrent.duration._
 
 final class CommandApi(commandManager: ActorRef)(implicit val system: ActorSystem, val timeout: Timeout) {
@@ -39,7 +37,7 @@ final class CommandApi(commandManager: ActorRef)(implicit val system: ActorSyste
 
   // Send a batch of CompleteTask commands to the command manager
   private def completeTasks(requests: Seq[CompleteRequest]) =
-    requests.map { r =>
+    requests.map { r ⇒
       validateCompletion(r.key, r.aggregate, r.entity) match {
         case Invalid(nel) ⇒ CommandResponse(ERROR, nel.map(_.error).toList)
         case Valid(command) ⇒
