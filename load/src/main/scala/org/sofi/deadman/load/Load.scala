@@ -4,13 +4,13 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent._
 import scala.concurrent.duration._
 
-// Load some tasks into the deadman switch service using the JSON stream endpoint
+// Load some tasks into the deadman switch service
 object Load extends App {
 
   // Schedule 100 tasks for the given aggregate
   private def scheduleTasks(a: Int): Future[Unit] = Future {
     val s = System.currentTimeMillis() // Use a base start timestamp for each aggregate task
-    val tasks = (1 to 100).map { j ⇒
+    val tasks = (1 to NUM_ENTITIES).map { j ⇒
       val ts = s + j
       Map[String, Any](
         "key" -> s"task$j",
@@ -32,7 +32,7 @@ object Load extends App {
   // Schedule tasks for a range of aggregates
   def scheduleAggregates() =
     Future.sequence {
-      (1 to 100).map(scheduleTasks)
+      (1 to NUM_AGGREGATES).map(scheduleTasks)
     }
 
   // Wait until complete

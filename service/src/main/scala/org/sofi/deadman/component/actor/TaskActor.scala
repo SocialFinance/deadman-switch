@@ -71,6 +71,7 @@ final class TaskActor(val aggregate: String, val replica: String, val eventLog: 
     case ScheduleTask(key, `aggregate`, entity, ttl, ttw, tags, ts) ⇒
       val id = uid(aggregate, entity, key)
       if (tasks.keys.size >= MAX_TASKS) {
+        log.error("Aggregate {} does not support > {} tasks", aggregate, MAX_TASKS)
         sender() ! CommandResponse(ERROR, Seq(s"Aggregate $aggregate does not support > $MAX_TASKS tasks"))
       } else {
         log.info(s"Persisting Task: $id")
@@ -87,6 +88,7 @@ final class TaskActor(val aggregate: String, val replica: String, val eventLog: 
         log.error("Task not found: {}", id)
         sender() ! CommandResponse(ERROR, Seq(s"Task not found: $id"))
       } else {
+        log.info(s"Completing Task: $id")
         persist(TaskTermination(key, aggregate, entity)) {
           case Success(_) ⇒ sender() ! CommandResponse(SUCCESS)
           case Failure(err) ⇒
