@@ -37,3 +37,9 @@ message TaggedExpiration {
     required string window = 3;    // Time window (a day[20170920] or month[201709])
     required uint64 ts = 4;        // Expiration timestamp
 }
+
+message KeyExpiration {
+    required Task task = 1;        // Expired task
+    required string window = 3;    // Time window (a day[20170920] or month[201709])
+    required uint64 ts = 4;        // Expiration timestamp
+}

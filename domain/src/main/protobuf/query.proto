@@ -31,8 +31,15 @@ message GetWarnings {
     optional string entity = 3;       // Entity ID (eg customer)
 }
 
-message GetTags {
+message GetByTag {
     required string tag = 1;          // Tag name
+    required string window = 2;       // Time window
+    optional uint64 start = 3;        // Time range start
+    optional uint64 end = 4;          // Time range end
+}
+
+message GetByKey {
+    required string key = 1;          // Task key
     required string window = 2;       // Time window
     optional uint64 start = 3;        // Time range start
     optional uint64 end = 4;          // Time range end

@@ -91,8 +91,11 @@ private final class CommandLine(val commandManager: ActorRef, val queryManager: 
       case "query" :: "expired" :: "entity" :: id :: Nil ⇒
         queryManager ! GetExpirations(ENTITY, entity = Some(id))
 
+      case "query" :: "expired" :: "key" :: key :: window :: Nil ⇒
+        queryManager ! GetByKey(key, window)
+
       case "query" :: "expired" :: "tag" :: tag :: window :: Nil ⇒
-        queryManager ! GetTags(tag, window)
+        queryManager ! GetByTag(tag, window)
 
       // Query task warnings
 

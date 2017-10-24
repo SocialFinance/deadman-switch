@@ -72,7 +72,19 @@ CREATE TABLE tag_expiration (
   ttl BIGINT,
   creation BIGINT,
   tags TEXT,
-  PRIMARY KEY ((tag, window), expiration)
+  PRIMARY KEY ((tag, window), expiration, aggregate, entity)
+);
+
+CREATE TABLE key_expiration (
+  key TEXT,
+  window TEXT,
+  expiration BIGINT,
+  aggregate TEXT,
+  entity TEXT,
+  ttl BIGINT,
+  creation BIGINT,
+  tags TEXT,
+  PRIMARY KEY ((key, window), expiration, aggregate, entity)
 );
 
 CREATE TABLE write_progress (
@@ -86,3 +98,4 @@ INSERT INTO write_progress (id, sequence_nr) VALUES ('AggregateExpirationWriter'
 INSERT INTO write_progress (id, sequence_nr) VALUES ('EntityWarningWriter', 0);
 INSERT INTO write_progress (id, sequence_nr) VALUES ('EntityExpirationWriter', 0);
 INSERT INTO write_progress (id, sequence_nr) VALUES ('TaggedExpirationWriter', 0);
+INSERT INTO write_progress (id, sequence_nr) VALUES ('KeyExpirationWriter', 0);

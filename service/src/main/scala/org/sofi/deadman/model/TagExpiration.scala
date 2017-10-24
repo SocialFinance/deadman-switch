@@ -17,13 +17,13 @@ object TagExpiration {
   import org.sofi.deadman.messages.event.Task
   import org.sofi.deadman.storage._, db._
 
-  // Syntactic sugar on a tagged violation model
+  // Syntactic sugar on a tagged expiration model
   implicit class TagExpirationOps(val e: TagExpiration) extends AnyVal {
     def asTask: Task = Task(e.key, e.aggregate, e.entity, e.creation, e.ttl, Seq.empty, e.tags.split(","))
     def save(implicit ec: ExecutionContext): Future[Unit] = TagExpiration.save(e)
   }
 
-  // Get violations for the given tag and time window, limited to a set time range
+  // Get expirations for the given tag and time window, limited to a set time range
   def select(tag: String, window: String, start: Long, end: Long)(implicit ec: ExecutionContext): Future[Seq[TagExpiration]] =
     db.run {
       quote {
@@ -35,7 +35,7 @@ object TagExpiration {
       }
     }
 
-  // Create a tagged violation record in C*
+  // Create a tagged expiration record in C*
   def save(t: TagExpiration)(implicit ec: ExecutionContext): Future[Unit] =
     db.run {
       quote {
@@ -43,9 +43,9 @@ object TagExpiration {
           .filter(_.tag == lift(t.tag))
           .filter(_.window == lift(t.window))
           .filter(_.expiration == lift(t.expiration))
+          .filter(_.aggregate == lift(t.aggregate))
+          .filter(_.entity == lift(t.entity))
           .update(
-            _.aggregate -> lift(t.aggregate),
-            _.entity -> lift(t.entity),
             _.key -> lift(t.key),
             _.ttl -> lift(t.ttl),
             _.creation -> lift(t.creation),

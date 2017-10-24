@@ -34,7 +34,11 @@ final class QueryApi(queryManager: ActorRef)(implicit val sys: ActorSystem, val 
 
   // Get all expired tasks by tag within a given time window
   def queryExpiredTag(tag: String, window: String) =
-    (queryManager ? GetTags(tag, window)).mapTo[Tasks]
+    (queryManager ? GetByTag(tag, window)).mapTo[Tasks]
+
+  // Get all expired tasks by key within a given time window
+  def queryExpiredKey(key: String, window: String) =
+    (queryManager ? GetByKey(key, window)).mapTo[Tasks]
 
   // Warnings -------------------------------------------------------------------------------------------------------------------------
 

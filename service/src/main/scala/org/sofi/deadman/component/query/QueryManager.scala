@@ -10,7 +10,8 @@ final class QueryManager(val viewManager: ActorRef, val writerManager: ActorRef)
     case query: GetTasks ⇒ viewManager forward query
     case query: GetExpirations ⇒ writerManager forward query
     case query: GetWarnings ⇒ writerManager forward query
-    case query: GetTags ⇒ writerManager forward query
+    case query: GetByTag ⇒ writerManager forward query
+    case query: GetByKey ⇒ writerManager forward query
   }
 }
 

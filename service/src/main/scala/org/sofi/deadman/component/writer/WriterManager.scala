@@ -1,9 +1,9 @@
 package org.sofi.deadman.component.writer
 
 import akka.actor._
-import org.sofi.deadman.messages.query._
+import org.sofi.deadman.messages.query._, QueryType._
 
-final class WriterManager(val id: String, val eventLog: ActorRef, val targetLog: ActorRef) extends Actor {
+final class WriterManager(val id: String, val eventLog: ActorRef, val tagLog: ActorRef, val keyLog: ActorRef) extends Actor {
 
   // Writes and handles queries for aggregate expiration events
   private val aggExpWriter = context.actorOf(AggregateExpirationWriter.props(AggregateExpirationWriter.name(id), eventLog))
@@ -18,22 +18,27 @@ final class WriterManager(val id: String, val eventLog: ActorRef, val targetLog:
   private val entWarnWriter = context.actorOf(EntityWarningWriter.props(EntityWarningWriter.name(id), eventLog))
 
   // Writes and handles queries for tagged task expiration events
-  private val tagWriter = context.actorOf(TaggedExpirationWriter.props(TaggedExpirationWriter.name(id), targetLog))
+  private val tagWriter = context.actorOf(TaggedExpirationWriter.props(TaggedExpirationWriter.name(id), tagLog))
+
+  // Writes and handles queries for keyed task expiration events
+  private val keyWriter = context.actorOf(KeyExpirationWriter.props(KeyExpirationWriter.name(id), keyLog))
 
   // Forward queries to the appropriate writer
   def receive: Receive = {
-    case query: GetTags ⇒ tagWriter forward query
+    case query: GetByTag ⇒ tagWriter forward query
+    case query: GetByKey ⇒ keyWriter forward query
     case query: GetExpirations ⇒ query.queryType match {
-      case QueryType.ENTITY ⇒ entExpWriter forward query
+      case ENTITY ⇒ entExpWriter forward query
       case _ ⇒ aggExpWriter forward query
     }
     case query: GetWarnings ⇒ query.queryType match {
-      case QueryType.ENTITY ⇒ entWarnWriter forward query
+      case ENTITY ⇒ entWarnWriter forward query
       case _ ⇒ aggWarnWriter forward query
     }
   }
 }
 
 object WriterManager {
-  def props(id: String, eventLog: ActorRef, targetLog: ActorRef): Props = Props(new WriterManager(id, eventLog, targetLog))
+  def props(id: String, eventLog: ActorRef, tagLog: ActorRef, keyLog: ActorRef): Props =
+    Props(new WriterManager(id, eventLog, tagLog, keyLog))
 }

@@ -23,16 +23,18 @@ final class NetworkLocation(val id: String)(implicit system: ActorSystem) {
     val Array(host, port) = address.split(":")
     ReplicationConnection(host, port.toInt, system.name)
   }
-  private val endpoint = new ReplicationEndpoint(id, Set("L1", "T1"), logId ⇒ CassandraEventLog.props(logId), connections)
+  private val endpoint = new ReplicationEndpoint(id, Set("L1", "T1", "K1"), logId ⇒ CassandraEventLog.props(logId), connections)
   endpoint.activate()
 
   // Event Logs
   private val eventLog = endpoint.logs("L1")
-  private val targetLog = endpoint.logs("T1")
+  private val tagLog = endpoint.logs("T1")
+  private val keyLog = endpoint.logs("K1")
 
   // Event sourced components
-  system.actorOf(TaskExpirationProcessor.props(TaskExpirationProcessor.name(id), eventLog, targetLog))
-  private val writerManager = system.actorOf(WriterManager.props(id, eventLog, targetLog))
+  system.actorOf(TaggedExpirationProcessor.props(TaggedExpirationProcessor.name(id), eventLog, tagLog))
+  system.actorOf(KeyExpirationProcessor.props(KeyExpirationProcessor.name(id), eventLog, keyLog))
+  private val writerManager = system.actorOf(WriterManager.props(id, eventLog, tagLog, keyLog))
   private val viewManager = system.actorOf(ViewManager.props(id, eventLog))
   val queryManager = system.actorOf(QueryManager.props(viewManager, writerManager))
   val commandManager = system.actorOf(TaskManager.props(TaskManager.name(id), eventLog))

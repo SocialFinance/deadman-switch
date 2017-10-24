@@ -109,8 +109,21 @@ final class HttpRouter(implicit command: CommandApi, query: QueryApi, am: ActorM
       }
     }
 
+  private val keyExpirations =
+    pathPrefix("deadman" / "api" / "v1" / "key" / Segment / "expirations") { key ⇒
+      path(Segment) { window ⇒
+        pathEndOrSingleSlash {
+          get {
+            onSuccess(queryExpiredKey(key, window)) { tasks ⇒
+              complete(tasks)
+            }
+          }
+        }
+      }
+    }
+
   private val tags =
-    pathPrefix("deadman" / "api" / "v1" / "tag" / Segment) { tag ⇒
+    pathPrefix("deadman" / "api" / "v1" / "tag" / Segment / "expirations") { tag ⇒
       path(Segment) { window ⇒
         pathEndOrSingleSlash {
           get {
@@ -123,7 +136,18 @@ final class HttpRouter(implicit command: CommandApi, query: QueryApi, am: ActorM
     }
 
   // Combine all endpoints
-  val routes = schedule ~ completed ~ aggregates ~ expirations ~ warnings ~ entities ~ entityExpirations ~ entityWarnings ~ key ~ tags
+  val routes =
+    schedule ~
+    completed ~
+    aggregates ~
+    expirations ~
+    warnings ~
+    entities ~
+    entityExpirations ~
+    entityWarnings ~
+    key ~
+    keyExpirations ~
+    tags
 
   // format: ON
 }
