@@ -118,7 +118,9 @@ final class TaskActor(val aggregate: String, val replica: String, val eventLog: 
   // Schedule or cancel expiration timers
   def onEvent: Receive = {
     case t: Task ⇒
-      schedule(t)
+      if (!t.isExpired) {
+        schedule(t)
+      }
     case t: TaskTermination ⇒
       cancel(t.id)
   }
