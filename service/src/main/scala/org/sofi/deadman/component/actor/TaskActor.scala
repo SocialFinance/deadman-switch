@@ -66,53 +66,67 @@ final class TaskActor(val aggregate: String, val replica: String, val eventLog: 
         warnings = warnings + (wid -> nonExpired)
     }
 
+  // Create and persist a Task event
+  private def persistTask(key: String, entity: String, ttl: Long, ttw: Seq[Long], tags: Seq[String], ts: Option[Long]): Unit = {
+    if (tasks.keys.size >= MAX_TASKS) {
+      log.warning("Aggregate {} contains >= {} tasks", aggregate, MAX_TASKS)
+    }
+    log.info(s"Persisting Task: $aggregate:$entity:$key")
+    persist(Task(key, aggregate, entity, ts.getOrElse(System.currentTimeMillis()), ttl, ttw, tags)) {
+      case Success(_) ⇒ sender() ! CommandResponse(SUCCESS)
+      case Failure(err) ⇒
+        log.error("Unable to persist task {}", err)
+        sender() ! CommandResponse(ERROR, Seq(err.getMessage))
+    }
+  }
+
+  // Create and persist a TaskTermination event
+  private def persistTaskTermination(key: String, entity: String): Unit = {
+    val id = uid(aggregate, entity, key)
+    if (!tasks.contains(id)) {
+      log.warning("Task not found: {}", id)
+    } else {
+      log.info(s"Completing Task: $id")
+      persist(TaskTermination(key, aggregate, entity)) {
+        case Success(_) ⇒ sender() ! CommandResponse(SUCCESS)
+        case Failure(err) ⇒
+          log.error("Unable to persist task termination {}", err)
+          sender() ! CommandResponse(ERROR, Seq(err.getMessage))
+      }
+    }
+  }
+
+  // Create and persist a TaskExpiration event
+  private def persistTaskExpiration(task: Task): Unit =
+    if (task.isExpired) {
+      persist(TaskExpiration(task, System.currentTimeMillis())) {
+        case Success(_) ⇒ log.info("Expiration for task: {}", task)
+        case Failure(err) ⇒ log.error("Unable to persist task expiration {}", err)
+      }
+    }
+
+  // Create and persist a TaskWarning event
+  private def persistTaskWarning(task: Task, ttw: Long) =
+    if (!task.isExpired) {
+      persist(TaskWarning(task, ttw, System.currentTimeMillis())) {
+        case Success(_) ⇒ log.info("Warning for task: {}", task)
+        case Failure(err) ⇒ log.error("Unable to persist task expiration warning {}", err)
+      }
+    }
+
   // Create persistent events when a command is received
   def onCommand: Receive = {
     case ScheduleTask(key, `aggregate`, entity, ttl, ttw, tags, ts) ⇒
-      val id = uid(aggregate, entity, key)
-      if (tasks.keys.size >= MAX_TASKS) {
-        log.error("Aggregate {} does not support > {} tasks", aggregate, MAX_TASKS)
-        sender() ! CommandResponse(ERROR, Seq(s"Aggregate $aggregate does not support > $MAX_TASKS tasks"))
-      } else {
-        log.info(s"Persisting Task: $id")
-        persist(Task(key, aggregate, entity, ts.getOrElse(System.currentTimeMillis()), ttl, ttw, tags)) {
-          case Success(_) ⇒ sender() ! CommandResponse(SUCCESS)
-          case Failure(err) ⇒
-            log.error("Unable to persist task {}", err)
-            sender() ! CommandResponse(ERROR, Seq(err.getMessage))
-        }
-      }
+      persistTask(key, entity, ttl, ttw, tags, ts)
     case CompleteTask(key, `aggregate`, entity) ⇒
-      val id = uid(aggregate, entity, key)
-      if (!tasks.contains(id)) {
-        log.error("Task not found: {}", id)
-        sender() ! CommandResponse(ERROR, Seq(s"Task not found: $id"))
-      } else {
-        log.info(s"Completing Task: $id")
-        persist(TaskTermination(key, aggregate, entity)) {
-          case Success(_) ⇒ sender() ! CommandResponse(SUCCESS)
-          case Failure(err) ⇒
-            log.error("Unable to persist task termination {}", err)
-            sender() ! CommandResponse(ERROR, Seq(err.getMessage))
-        }
-      }
+      persistTaskTermination(key, entity)
     case ExpireTask(task) ⇒
-      if (task.isExpired) {
-        persist(TaskExpiration(task, System.currentTimeMillis())) {
-          case Success(_) ⇒ log.info("Expiration for task: {}", task)
-          case Failure(err) ⇒ log.error("Unable to persist task expiration {}", err)
-        }
-      }
+      persistTaskExpiration(task)
     case IssueTaskWarning(task, ttw) ⇒
-      if (!task.isExpired) {
-        persist(TaskWarning(task, ttw, System.currentTimeMillis())) {
-          case Success(_) ⇒ log.info("Warning for task: {}", task)
-          case Failure(err) ⇒ log.error("Unable to persist task expiration warning {}", err)
-        }
-      }
+      persistTaskWarning(task, ttw)
     case TaskActor.Tick ⇒
-      checkWarnings()
       checkExpired()
+      checkWarnings()
   }
 
   // Schedule or cancel expiration timers
@@ -128,6 +142,5 @@ final class TaskActor(val aggregate: String, val replica: String, val eventLog: 
 
 object TaskActor {
   case object Tick
-  def props(aggregate: String, replica: String, eventLog: ActorRef): Props =
-    Props(new TaskActor(aggregate, replica, eventLog))
+  def props(aggregate: String, replica: String, eventLog: ActorRef): Props = Props(new TaskActor(aggregate, replica, eventLog))
 }
