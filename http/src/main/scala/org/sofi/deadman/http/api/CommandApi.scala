@@ -1,10 +1,11 @@
-package org.sofi.deadman.http
+package org.sofi.deadman.http.api
 
 import akka.actor._
 import akka.stream._
 import akka.stream.scaladsl._
 import akka.util.Timeout
 import cats.data.Validated._
+import org.sofi.deadman.http.request._
 import org.sofi.deadman.messages.command._, ResponseType._
 import org.sofi.deadman.messages.validation._
 import scala.concurrent.duration._
@@ -24,25 +25,26 @@ final class CommandApi(commandManager: ActorRef)(implicit val system: ActorSyste
   private def setTimestamp(req: ScheduleRequest) =
     if (req.ts.isDefined) req else req.copy(ts = Some(System.currentTimeMillis()))
 
-  // Send a batch of ScheduleTask commands to the command manager
+  private def sendCommand(command: Any) = {
+    commandManager ! command
+    CommandResponse(QUEUED)
+  }
+
+  // Validate, create and send a batch of ScheduleTask commands to the command manager
   private def scheduleTasks(requests: Seq[ScheduleRequest]) =
     requests.map { r ⇒
       validate(r.key, r.aggregate, r.entity, r.ttl, r.ttw, r.tags, r.ts) match {
         case Invalid(nel) ⇒ CommandResponse(ERROR, nel.map(_.error).toList)
-        case Valid(command) ⇒
-          commandManager ! command
-          CommandResponse(QUEUED)
+        case Valid(command) ⇒ sendCommand(command)
       }
     }
 
-  // Send a batch of CompleteTask commands to the command manager
+  // Validate, create and send a batch of CompleteTask commands to the command manager
   private def completeTasks(requests: Seq[CompleteRequest]) =
     requests.map { r ⇒
       validateCompletion(r.key, r.aggregate, r.entity) match {
         case Invalid(nel) ⇒ CommandResponse(ERROR, nel.map(_.error).toList)
-        case Valid(command) ⇒
-          commandManager ! command
-          CommandResponse(QUEUED)
+        case Valid(command) ⇒ sendCommand(command)
       }
     }
 

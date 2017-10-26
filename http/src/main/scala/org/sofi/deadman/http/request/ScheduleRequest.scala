@@ -1,7 +1,7 @@
-package org.sofi.deadman.http
+package org.sofi.deadman.http.request
 
 // Represents an unvalidated request to schedule a task
-private[http] final case class ScheduleRequest(
+final case class ScheduleRequest(
   key: String,
   aggregate: String,
   entity: String,

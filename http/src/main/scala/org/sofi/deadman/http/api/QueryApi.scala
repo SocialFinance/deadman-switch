@@ -1,4 +1,4 @@
-package org.sofi.deadman.http
+package org.sofi.deadman.http.api
 
 import akka.actor._
 import akka.pattern.ask

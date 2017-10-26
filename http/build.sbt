@@ -16,4 +16,4 @@ javacOptions in (Compile, compile) ++= Seq(
   "-Xlint:-options"
 )
 
-mainClass in Compile := Some("org.sofi.deadman.Main")
+mainClass in Compile := Some("org.sofi.deadman.http.Main")

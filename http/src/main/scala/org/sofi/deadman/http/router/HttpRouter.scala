@@ -1,9 +1,12 @@
-package org.sofi.deadman.http
+package org.sofi.deadman.http.router
 
 import akka.stream.ActorMaterializer
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
 import akka.http.scaladsl.model.StatusCodes._
 import akka.http.scaladsl.server.Directives._
+import org.sofi.deadman.http.api._
+import org.sofi.deadman.http.json._
+import org.sofi.deadman.http.request._
 
 final class HttpRouter(implicit command: CommandApi, query: QueryApi, am: ActorMaterializer) extends JsonProtocol {
   import command._, query._

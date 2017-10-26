@@ -1,6 +1,7 @@
-package org.sofi.deadman.http
+package org.sofi.deadman.http.json
 
 import akka.http.scaladsl.common.EntityStreamingSupport
+import org.sofi.deadman.http.request.{CompleteRequest, ScheduleRequest}
 import org.sofi.deadman.messages.event._
 import org.sofi.deadman.messages.query._
 import spray.json._

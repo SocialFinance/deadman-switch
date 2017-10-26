@@ -1,7 +1,7 @@
-package org.sofi.deadman.http
+package org.sofi.deadman.http.request
 
 // Represents an unvalidated request to complete a task
-private[http] final case class CompleteRequest(
+final case class CompleteRequest(
   key: String,
   aggregate: String,
   entity: String

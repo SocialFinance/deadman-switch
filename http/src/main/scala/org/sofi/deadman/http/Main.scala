@@ -1,9 +1,11 @@
-package org.sofi.deadman
+package org.sofi.deadman.http
 
 import akka.actor._
 import akka.stream.ActorMaterializer
 import akka.util.Timeout
-import org.sofi.deadman.http._
+import org.sofi.deadman.http.api._
+import org.sofi.deadman.http.server._
+import org.sofi.deadman.http.router._
 import org.sofi.deadman.location.NetworkLocation
 import org.sofi.deadman.messages.command._
 import org.sofi.deadman.messages.query._, QueryType._

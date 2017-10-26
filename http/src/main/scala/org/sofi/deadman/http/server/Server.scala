@@ -1,4 +1,4 @@
-package org.sofi.deadman.http
+package org.sofi.deadman.http.server
 
 import akka.actor.ActorSystem
 import akka.event.Logging
