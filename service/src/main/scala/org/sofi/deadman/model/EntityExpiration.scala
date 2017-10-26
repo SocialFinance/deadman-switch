@@ -15,13 +15,13 @@ object EntityExpiration {
   import org.sofi.deadman.messages.event.Task
   import org.sofi.deadman.storage._, db._
 
-  // Syntactic sugar on entity warning model
+  // Syntactic sugar on entity expiration model
   implicit class EntityExpirationOps(val e: EntityExpiration) extends AnyVal {
     def asTask: Task = Task(e.key, e.aggregate, e.entity, e.creation, e.ttl, Seq.empty, e.tags.split(","))
     def save(implicit ec: ExecutionContext): Future[Unit] = EntityExpiration.save(e)
   }
 
-  // Get warnings for an aggregate
+  // Get expirations for an entity
   def select(entity: String)(implicit ec: ExecutionContext): Future[Seq[EntityExpiration]] =
     db.run {
       quote {
@@ -29,7 +29,7 @@ object EntityExpiration {
       }
     }
 
-  // Create a aggregate warning record in C*
+  // Create a entity expiration record in C*
   def save(w: EntityExpiration)(implicit ec: ExecutionContext): Future[Unit] =
     db.run {
       quote {

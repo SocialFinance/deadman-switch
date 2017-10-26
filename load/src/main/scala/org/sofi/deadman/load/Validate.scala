@@ -6,9 +6,13 @@ object Validate extends App {
   // Output status
   var ok = true
 
+  // HTTP service locations
+  val ports = Array(9876, 9877, 9878)
+
   // Validate aggregate expiration data
   (1 to NUM_AGGREGATES).foreach { a ⇒
-    val url = s"http://127.0.0.1:9876/deadman/api/v1/aggregate/$a/expirations"
+    val port = ports(a % ports.length)
+    val url = s"http://127.0.0.1:$port/deadman/api/v1/aggregate/$a/expirations"
     val resp = Http.get(url)
     if (resp.status == Http.OK) {
       val tasks = Json.decode(resp.body, "tasks", classOf[Seq[Map[Any, Any]]])

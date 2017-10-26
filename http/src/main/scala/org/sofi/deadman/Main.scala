@@ -15,11 +15,12 @@ import scala.util.Try
 object Main extends App with Server {
 
   // Read args
-  val id = Try(args(0)).getOrElse("loc1")
+  val id = Try(args(0)).getOrElse("")
   val mode = Try(args(1)).getOrElse("")
 
   // Boot actor system
-  implicit val system = ActorSystem("deadman-switch-actor-system", ConfigFactory.load(id).resolve())
+  val config = if (id.isEmpty) ConfigFactory.load() else ConfigFactory.load(id)
+  implicit val system = ActorSystem("deadman-switch-actor-system", config.resolve())
   implicit val executionContext = system.dispatcher
   implicit val materialize = ActorMaterializer()
 

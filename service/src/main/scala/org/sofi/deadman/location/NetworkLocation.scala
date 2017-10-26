@@ -8,18 +8,15 @@ import org.sofi.deadman.component.processor._
 import org.sofi.deadman.component.query._
 import org.sofi.deadman.component.view._
 import org.sofi.deadman.component.writer._
-import scala.collection.JavaConverters._
 
 final class NetworkLocation(val id: String)(implicit system: ActorSystem) {
 
   // Config
   private val config = system.settings.config
-  private val host = config.getString("akka.remote.netty.tcp.hostname")
-  private val port = config.getInt("akka.remote.netty.tcp.port")
 
   // Replication endpoint
-  private val cluster = config.getStringList("replication.endpoint.cluster")
-  private val connections = cluster.asScala.filterNot(_ == s"$host:$port").toSet.map { address: String ⇒
+  private val cluster = config.getString("replication.endpoints").split(",")
+  private val connections = cluster.toSet.map { address: String ⇒
     val Array(host, port) = address.split(":")
     ReplicationConnection(host, port.toInt, system.name)
   }

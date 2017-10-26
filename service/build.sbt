@@ -1,24 +1,20 @@
-name := "deadman-switch"
+name := "deadman-switch-service"
 
 resolvers += "Eventuate Releases" at "https://dl.bintray.com/rbmhtechnology/maven"
 
 libraryDependencies ++= Seq(
-  "com.rbmhtechnology" %% "eventuate-core"                     % "0.8.1",
-  "com.rbmhtechnology" %% "eventuate-log-cassandra"            % "0.8.1",
-  "io.getquill"        %% "quill-cassandra"                    % "1.2.1",
-  "com.typesafe.akka"  %% "akka-http"                          % "10.0.10",
-  "com.typesafe.akka"  %% "akka-http-spray-json"               % "10.0.10",
-  "com.typesafe.akka"  %% "akka-slf4j"                         % "2.4.18",
-  "ch.qos.logback"     %  "logback-classic"                    % "1.1.6",
-  "org.typelevel"      %% "cats-core"                          % "1.0.0-MF",
-  "com.rbmhtechnology" %% "eventuate-log-leveldb"              % "0.8.1"   % "test",
-  "com.typesafe.akka"  %% "akka-testkit"                       % "2.4.12"  % "test",
-  "org.scalatest"      %% "scalatest"                          % "3.0.0"   % "test"
+  "com.rbmhtechnology" %% "eventuate-core"          % "0.8.1",
+  "com.rbmhtechnology" %% "eventuate-log-cassandra" % "0.8.1",
+  "io.getquill"        %% "quill-cassandra"         % "1.2.1",
+  "com.typesafe.akka"  %% "akka-slf4j"              % "2.4.18",
+  "ch.qos.logback"     %  "logback-classic"         % "1.1.6",
+  "org.typelevel"      %% "cats-core"               % "1.0.0-MF",
+  "com.rbmhtechnology" %% "eventuate-log-leveldb"   % "0.8.1"  % "test",
+  "com.typesafe.akka"  %% "akka-testkit"            % "2.4.12" % "test",
+  "org.scalatest"      %% "scalatest"               % "3.0.0"  % "test"
 )
 
 fork in Test := true
-fork in run := true
-Keys.connectInput in run := true
 
 javacOptions in (Compile, compile) ++= Seq(
   "-source", "1.8",
@@ -27,5 +23,3 @@ javacOptions in (Compile, compile) ++= Seq(
   "-Xlint:deprecation",
   "-Xlint:-options"
 )
-
-mainClass in Compile := Some("org.sofi.deadman.Main")

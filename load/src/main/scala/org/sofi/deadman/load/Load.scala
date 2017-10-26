@@ -7,6 +7,9 @@ import scala.concurrent.duration._
 // Load some tasks into the deadman switch service
 object Load extends App {
 
+  // HTTP service locations
+  val ports = Array(9876, 9877, 9878)
+
   // Schedule 100 tasks for the given aggregate
   private def scheduleTasks(a: Int): Future[Unit] = Future {
     val s = System.currentTimeMillis() // Use a base start timestamp for each aggregate task
@@ -23,7 +26,8 @@ object Load extends App {
       )
     }
     println(s"Scheduling tasks for aggregate: $a")
-    val rep = Http.post(s"http://127.0.0.1:9876/deadman/api/v1/schedule", Json.encode(tasks))
+    val port = ports(a % ports.length)
+    val rep = Http.post(s"http://127.0.0.1:$port/deadman/api/v1/schedule", Json.encode(tasks))
     if (rep.status != Http.CREATED) {
       println(s"${rep.status}: ${rep.body}")
     }
