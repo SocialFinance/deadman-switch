@@ -25,6 +25,7 @@ final class CommandApi(commandManager: ActorRef)(implicit val system: ActorSyste
   private def setTimestamp(req: ScheduleRequest) =
     if (req.ts.isDefined) req else req.copy(ts = Some(System.currentTimeMillis()))
 
+  // Send a command to the command manager
   private def sendCommand(command: Any) = {
     commandManager ! command
     CommandResponse(QUEUED)

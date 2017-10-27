@@ -9,9 +9,6 @@ import scala.util.{ Failure, Success }
 
 final class TaskActor(val aggregate: String, val replica: String, val eventLog: ActorRef) extends EventsourcedActor with ActorLogging {
 
-  // Max number of tasks
-  private val MAX_TASKS = 1000
-
   // Implicit execution context
   import context.dispatcher
 
@@ -66,13 +63,16 @@ final class TaskActor(val aggregate: String, val replica: String, val eventLog: 
         warnings = warnings + (wid -> nonExpired)
     }
 
+  // Process warnings and expirations
+  private def onTick(): Unit = {
+    checkWarnings()
+    checkExpired()
+  }
+
   // Create and persist a Task event
-  private def persistTask(key: String, entity: String, ttl: Long, ttw: Seq[Long], tags: Seq[String], ts: Option[Long]): Unit = {
-    if (tasks.keys.size >= MAX_TASKS) {
-      log.warning("Aggregate {} contains >= {} tasks", aggregate, MAX_TASKS)
-    }
-    log.info(s"Persisting Task: $aggregate:$entity:$key")
-    persist(Task(key, aggregate, entity, ts.getOrElse(System.currentTimeMillis()), ttl, ttw, tags)) {
+  private def persistTask(event: Task): Unit = {
+    log.info(s"Persisting Task: ${event.id}")
+    persist(event) {
       case Success(_) ⇒ sender() ! CommandResponse(SUCCESS)
       case Failure(err) ⇒
         log.error("Unable to persist task {}", err)
@@ -81,13 +81,12 @@ final class TaskActor(val aggregate: String, val replica: String, val eventLog: 
   }
 
   // Create and persist a TaskTermination event
-  private def persistTaskTermination(key: String, entity: String): Unit = {
-    val id = uid(aggregate, entity, key)
-    if (!tasks.contains(id)) {
-      log.warning("Task not found: {}", id)
+  private def persistTaskTermination(event: TaskTermination): Unit = {
+    if (!tasks.contains(event.id)) {
+      log.warning("Task not found: {}", event.id)
     } else {
-      log.info(s"Completing Task: $id")
-      persist(TaskTermination(key, aggregate, entity)) {
+      log.info(s"Completing Task: ${event.id}")
+      persist(event) {
         case Success(_) ⇒ sender() ! CommandResponse(SUCCESS)
         case Failure(err) ⇒
           log.error("Unable to persist task termination {}", err)
@@ -116,27 +115,17 @@ final class TaskActor(val aggregate: String, val replica: String, val eventLog: 
 
   // Create persistent events when a command is received
   def onCommand: Receive = {
-    case ScheduleTask(key, `aggregate`, entity, ttl, ttw, tags, ts) ⇒
-      persistTask(key, entity, ttl, ttw, tags, ts)
-    case CompleteTask(key, `aggregate`, entity) ⇒
-      persistTaskTermination(key, entity)
-    case ExpireTask(task) ⇒
-      persistTaskExpiration(task)
-    case IssueTaskWarning(task, ttw) ⇒
-      persistTaskWarning(task, ttw)
-    case TaskActor.Tick ⇒
-      checkExpired()
-      checkWarnings()
+    case cmd: ScheduleTask ⇒ persistTask(cmd.event)
+    case cmd: CompleteTask ⇒ persistTaskTermination(cmd.event)
+    case ExpireTask(task) ⇒ persistTaskExpiration(task)
+    case IssueTaskWarning(task, ttw) ⇒ persistTaskWarning(task, ttw)
+    case TaskActor.Tick ⇒ onTick()
   }
 
   // Schedule or cancel expiration timers
   def onEvent: Receive = {
-    case t: Task ⇒
-      if (!t.isExpired) {
-        schedule(t)
-      }
-    case t: TaskTermination ⇒
-      cancel(t.id)
+    case t: Task ⇒ if (!t.isExpired) schedule(t)
+    case t: TaskTermination ⇒ cancel(t.id)
   }
 }
 

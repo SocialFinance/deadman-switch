@@ -13,7 +13,7 @@ trait Server {
     val host = system.settings.config.getString("http.host")
     val port = system.settings.config.getInt("http.port")
     Http().bindAndHandle(routes, host, port).map { binding ⇒
-      log.info(s"RestApi bound to ${binding.localAddress}")
+      log.info(s"Bound to ${binding.localAddress}")
     } onFailure {
       case e: Exception ⇒
         log.error(e, "Failed to bind to {}:{}!", host, port)
