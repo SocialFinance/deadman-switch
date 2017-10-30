@@ -1,4 +1,4 @@
-package org.sofi.deadman.component.query
+package org.sofi.deadman.component.manager
 
 import akka.actor._
 import org.sofi.deadman.messages.query._

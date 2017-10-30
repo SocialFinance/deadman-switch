@@ -3,11 +3,8 @@ package org.sofi.deadman.location
 import akka.actor._
 import com.rbmhtechnology.eventuate._
 import com.rbmhtechnology.eventuate.log.cassandra._
-import org.sofi.deadman.component.actor._
+import org.sofi.deadman.component.manager._
 import org.sofi.deadman.component.processor._
-import org.sofi.deadman.component.query._
-import org.sofi.deadman.component.view._
-import org.sofi.deadman.component.writer._
 
 final class NetworkLocation(val id: String)(implicit system: ActorSystem) {
 
@@ -34,5 +31,5 @@ final class NetworkLocation(val id: String)(implicit system: ActorSystem) {
   private val writerManager = system.actorOf(WriterManager.props(id, eventLog, tagLog, keyLog))
   private val viewManager = system.actorOf(ViewManager.props(id, eventLog))
   val queryManager = system.actorOf(QueryManager.props(viewManager, writerManager))
-  val commandManager = system.actorOf(TaskManager.props(TaskManager.name(id), eventLog))
+  val commandManager = system.actorOf(CommandManager.props(CommandManager.name(id), eventLog))
 }

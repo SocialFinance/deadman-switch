@@ -6,7 +6,7 @@ import akka.util.Timeout
 import org.sofi.deadman.messages.query._
 import scala.concurrent.Future
 
-final class QueryApi(queryManager: ActorRef)(implicit val sys: ActorSystem, val t: Timeout) {
+final class QueryApi(queryManager: ActorRef)(implicit val system: ActorSystem, timeout: Timeout) {
 
   // Active ---------------------------------------------------------------------------------------------------------------------------
 

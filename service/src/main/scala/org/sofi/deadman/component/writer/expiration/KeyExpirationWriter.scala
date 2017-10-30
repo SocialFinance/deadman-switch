@@ -1,7 +1,8 @@
-package org.sofi.deadman.component.writer
+package org.sofi.deadman.component.writer.expiration
 
 import akka.actor._
 import akka.pattern.pipe
+import org.sofi.deadman.component.writer.TaskWriter
 import org.sofi.deadman.messages.query._
 import org.sofi.deadman.model._
 

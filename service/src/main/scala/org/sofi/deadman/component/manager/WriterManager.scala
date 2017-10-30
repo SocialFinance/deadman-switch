@@ -1,7 +1,10 @@
-package org.sofi.deadman.component.writer
+package org.sofi.deadman.component.manager
 
 import akka.actor._
-import org.sofi.deadman.messages.query._, QueryType._
+import org.sofi.deadman.component.writer.expiration._
+import org.sofi.deadman.component.writer.warning._
+import org.sofi.deadman.messages.query._
+import org.sofi.deadman.messages.query.QueryType._
 
 final class WriterManager(val id: String, val eventLog: ActorRef, val tagLog: ActorRef, val keyLog: ActorRef) extends Actor {
 

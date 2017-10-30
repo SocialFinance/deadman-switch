@@ -1,11 +1,12 @@
-package org.sofi.deadman.component.actor
+package org.sofi.deadman.component.manager
 
 import akka.actor._
 import com.rbmhtechnology.eventuate._
+import org.sofi.deadman.component.actor.TaskActor
 import org.sofi.deadman.messages.command._
 import org.sofi.deadman.messages.event._
 
-final class TaskManager(val id: String, val eventLog: ActorRef) extends EventsourcedActor with ActorLogging {
+final class CommandManager(val id: String, val eventLog: ActorRef) extends EventsourcedActor with ActorLogging {
 
   // Actor registry
   private var registry: Map[String, ActorRef] = Map.empty
@@ -16,7 +17,7 @@ final class TaskManager(val id: String, val eventLog: ActorRef) extends Eventsou
       case Some(actor) ⇒ actor
       case None ⇒
         if (recovering) {
-          log.debug("Recovering actor for aggregate {}", aggregate)
+          log.info("Recovering actor for aggregate {}", aggregate)
         }
         registry = registry + (aggregate -> context.actorOf(TaskActor.props(aggregate, id, eventLog)))
         registry(aggregate)
@@ -39,7 +40,7 @@ final class TaskManager(val id: String, val eventLog: ActorRef) extends Eventsou
   }
 }
 
-object TaskManager {
+object CommandManager {
   def name(id: String): String = s"$id-task-manager"
-  def props(id: String, eventLog: ActorRef): Props = Props(new TaskManager(id, eventLog))
+  def props(id: String, eventLog: ActorRef): Props = Props(new CommandManager(id, eventLog))
 }

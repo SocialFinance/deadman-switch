@@ -1,7 +1,9 @@
-package org.sofi.deadman.component.view
+package org.sofi.deadman.component.manager
 
 import akka.actor._
-import org.sofi.deadman.messages.query._, QueryType._
+import org.sofi.deadman.component.view._
+import org.sofi.deadman.messages.query._
+import org.sofi.deadman.messages.query.QueryType._
 
 final class ViewManager(val id: String, val eventLog: ActorRef) extends Actor with ActorLogging {
 
