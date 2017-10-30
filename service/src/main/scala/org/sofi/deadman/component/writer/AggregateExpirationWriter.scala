@@ -25,8 +25,8 @@ final class AggregateExpirationWriter(val id: String, val eventLog: ActorRef) ex
       batch(AggregateExpiration(t.aggregate, t.entity, t.key, t.ttl, t.ts, exp, t.tags.sorted.mkString(",")))
   }
 
-  // Save an aggregate expiration to C*
-  override def write(model: AggregateExpiration) = model.save
+  // Save a series of aggregate expirations to C*
+  def write(models: Vector[AggregateExpiration]) = AggregateExpiration.save(models.toList)
 }
 
 object AggregateExpirationWriter {

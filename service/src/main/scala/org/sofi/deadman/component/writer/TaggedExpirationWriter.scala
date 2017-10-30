@@ -28,7 +28,7 @@ final class TaggedExpirationWriter(val id: String, val eventLog: ActorRef) exten
   }
 
   // Save a tagged expiration to C*
-  override def write(model: TagExpiration) = model.save
+  override def write(models: Vector[TagExpiration]) = TagExpiration.save(models.toList)
 }
 
 object TaggedExpirationWriter {

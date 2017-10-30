@@ -27,7 +27,7 @@ final class KeyExpirationWriter(val id: String, val eventLog: ActorRef) extends 
   }
 
   // Save a tagged expiration to C*
-  override def write(model: KeyExpiration) = model.save
+  override def write(models: Vector[KeyExpiration]) = KeyExpiration.save(models.toList)
 }
 
 object KeyExpirationWriter {

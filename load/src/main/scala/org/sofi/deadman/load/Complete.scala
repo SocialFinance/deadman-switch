@@ -11,24 +11,24 @@ object Complete extends App {
   val ports = Array(9876, 9877, 9878)
 
   // Complete tasks for the given aggregate
-  private def completeTasks(a: Int): Future[Unit] = Future {
-    val tasks = (1 to NUM_ENTITIES).map { j ⇒
-      Map[String, Any]("key" -> s"task$j", "aggregate" -> s"$a", "entity" -> s"${a - 1}")
-    }
-    println(s"Completing tasks for aggregate: $a")
-    val port = ports(a % ports.length)
-    val url = s"http://127.0.0.1:$port/deadman/api/v1/complete"
-    println(url)
-    val rep = Http.post(url, Json.encode(tasks))
-    if (rep.status != Http.OK) {
-      println(s"${rep.status}: ${rep.body}")
+  private def completeTasks(aggregates: Seq[Int]): Future[Unit] = Future {
+    println(s"Completing tasks for aggregates: ${aggregates.mkString(" ")}")
+    aggregates.foreach { a ⇒
+      val tasks = (1 to NUM_ENTITIES).map { j ⇒
+        Map[String, Any]("key" -> s"task$j", "aggregate" -> s"$a", "entity" -> s"${a - 1}")
+      }
+      val port = ports(a % ports.length)
+      val rep = Http.post(s"http://127.0.0.1:$port/deadman/api/v1/complete", Json.encode(tasks))
+      if (rep.status != Http.OK) {
+        println(s"${rep.status}: ${rep.body}")
+      }
     }
   }
 
   // Complete tasks for a range of aggregates
   def completeAggregates() =
     Future.sequence {
-      (1 to NUM_AGGREGATES).map(completeTasks)
+      (1 to NUM_AGGREGATES).grouped(10).map(completeTasks)
     }
 
   // Wait until all Futures are finished

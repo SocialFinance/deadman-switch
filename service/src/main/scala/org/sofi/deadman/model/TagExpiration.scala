@@ -20,7 +20,6 @@ object TagExpiration {
   // Syntactic sugar on a tagged expiration model
   implicit class TagExpirationOps(val e: TagExpiration) extends AnyVal {
     def asTask: Task = Task(e.key, e.aggregate, e.entity, e.creation, e.ttl, Seq.empty, e.tags.split(","))
-    def save(implicit ec: ExecutionContext): Future[Unit] = TagExpiration.save(e)
   }
 
   // Get expirations for the given tag and time window, limited to a set time range
@@ -36,21 +35,23 @@ object TagExpiration {
     }
 
   // Create a tagged expiration record in C*
-  def save(t: TagExpiration)(implicit ec: ExecutionContext): Future[Unit] =
+  def save(models: List[TagExpiration])(implicit ec: ExecutionContext): Future[Unit] =
     db.run {
       quote {
-        query[TagExpiration]
-          .filter(_.tag == lift(t.tag))
-          .filter(_.window == lift(t.window))
-          .filter(_.expiration == lift(t.expiration))
-          .filter(_.aggregate == lift(t.aggregate))
-          .filter(_.entity == lift(t.entity))
-          .update(
-            _.key -> lift(t.key),
-            _.ttl -> lift(t.ttl),
-            _.creation -> lift(t.creation),
-            _.tags -> lift(t.tags)
-          )
+        liftQuery(models).foreach { t ⇒
+          query[TagExpiration]
+            .filter(_.tag == t.tag)
+            .filter(_.window == t.window)
+            .filter(_.expiration == t.expiration)
+            .filter(_.aggregate == t.aggregate)
+            .filter(_.entity == t.entity)
+            .update(
+              _.key -> t.key,
+              _.ttl -> t.ttl,
+              _.creation -> t.creation,
+              _.tags -> t.tags
+            )
+        }
       }
     }
 }

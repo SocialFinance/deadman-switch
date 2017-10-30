@@ -26,7 +26,7 @@ final class EntityExpirationWriter(val id: String, val eventLog: ActorRef) exten
   }
 
   // Save an entity expiration to C*
-  override def write(model: EntityExpiration) = model.save
+  override def write(models: Vector[EntityExpiration]) = EntityExpiration.save(models.toList)
 }
 
 object EntityExpirationWriter {

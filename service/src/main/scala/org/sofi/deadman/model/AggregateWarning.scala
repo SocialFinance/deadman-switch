@@ -19,7 +19,6 @@ object AggregateWarning {
   // Syntactic sugar on warning model
   implicit class AggregateWarningOps(val w: AggregateWarning) extends AnyVal {
     def asTask: Task = Task(w.key, w.aggregate, w.entity, w.creation, w.ttl, Seq(w.ttw), w.tags.split(","))
-    def save(implicit ec: ExecutionContext): Future[Unit] = AggregateWarning.save(w)
   }
 
   // Get warnings for an aggregate
@@ -31,20 +30,22 @@ object AggregateWarning {
     }
 
   // Create a aggregate warning record in C*
-  def save(w: AggregateWarning)(implicit ec: ExecutionContext): Future[Unit] =
+  def save(models: List[AggregateWarning])(implicit ec: ExecutionContext): Future[Unit] =
     db.run {
       quote {
-        query[AggregateWarning]
-          .filter(_.aggregate == lift(w.aggregate))
-          .filter(_.entity == lift(w.entity))
-          .filter(_.key == lift(w.key))
-          .filter(_.ttw == lift(w.ttw))
-          .update(
-            _.ttl -> lift(w.ttl),
-            _.creation -> lift(w.creation),
-            _.warning -> lift(w.warning),
-            _.tags -> lift(w.tags)
-          )
+        liftQuery(models).foreach { w ⇒
+          query[AggregateWarning]
+            .filter(_.aggregate == w.aggregate)
+            .filter(_.entity == w.entity)
+            .filter(_.key == w.key)
+            .filter(_.ttw == w.ttw)
+            .update(
+              _.ttl -> w.ttl,
+              _.creation -> w.creation,
+              _.warning -> w.warning,
+              _.tags -> w.tags
+            )
+        }
       }
     }
 }

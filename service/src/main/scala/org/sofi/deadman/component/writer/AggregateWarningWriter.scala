@@ -26,7 +26,7 @@ final class AggregateWarningWriter(val id: String, val eventLog: ActorRef) exten
   }
 
   // Save an aggregate warning to C*
-  override def write(model: AggregateWarning) = model.save
+  override def write(models: Vector[AggregateWarning]) = AggregateWarning.save(models.toList)
 }
 
 object AggregateWarningWriter {

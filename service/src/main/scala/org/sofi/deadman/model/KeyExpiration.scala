@@ -16,9 +16,8 @@ object KeyExpiration {
   import org.sofi.deadman.messages.event.Task
   import org.sofi.deadman.storage._, db._
 
-  implicit class TagExpirationOps(val e: KeyExpiration) extends AnyVal {
+  implicit class KeyExpirationOps(val e: KeyExpiration) extends AnyVal {
     def asTask: Task = Task(e.key, e.aggregate, e.entity, e.creation, e.ttl, Seq.empty, e.tags.split(","))
-    def save(implicit ec: ExecutionContext): Future[Unit] = KeyExpiration.save(e)
   }
 
   // Get expirations for the given key and time window, limited to a set time range
@@ -34,20 +33,22 @@ object KeyExpiration {
     }
 
   // Create a key expiration record in C*
-  def save(e: KeyExpiration)(implicit ec: ExecutionContext): Future[Unit] =
+  def save(models: List[KeyExpiration])(implicit ec: ExecutionContext): Future[Unit] =
     db.run {
       quote {
-        query[KeyExpiration]
-          .filter(_.key == lift(e.key))
-          .filter(_.window == lift(e.window))
-          .filter(_.expiration == lift(e.expiration))
-          .filter(_.aggregate == lift(e.aggregate))
-          .filter(_.entity == lift(e.entity))
-          .update(
-            _.ttl -> lift(e.ttl),
-            _.creation -> lift(e.creation),
-            _.tags -> lift(e.tags)
-          )
+        liftQuery(models).foreach { e ⇒
+          query[KeyExpiration]
+            .filter(_.key == e.key)
+            .filter(_.window == e.window)
+            .filter(_.expiration == e.expiration)
+            .filter(_.aggregate == e.aggregate)
+            .filter(_.entity == e.entity)
+            .update(
+              _.ttl -> e.ttl,
+              _.creation -> e.creation,
+              _.tags -> e.tags
+            )
+        }
       }
     }
 }

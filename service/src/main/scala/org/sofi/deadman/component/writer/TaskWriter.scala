@@ -21,10 +21,6 @@ trait TaskWriter[T] extends EventsourcedWriter[Long, Unit] with ActorLogging {
   // Batch models during event processing.
   private var cache: Vector[T] = Vector.empty
 
-  // Event replay back-pressure: replay is suspended after a set number of events and a write is triggered.
-  // This is necessary when writing to the database is slower than replaying from the eventLog (which is usually the case).
-  override def replayBatchSize: Int = 5120
-
   // Reads the sequence number of the last update; called only once after writer start or restart.
   def read(): Future[Long] = WriteProgress.read(writerId)
 
@@ -35,7 +31,7 @@ trait TaskWriter[T] extends EventsourcedWriter[Long, Unit] with ActorLogging {
   def write(): Future[Unit] = {
     val nr = lastSequenceNr
     val res = for {
-      _ ← Future.sequence(cache.map(write))
+      _ ← write(cache)
       _ ← WriteProgress.write(writerId, nr)
     } yield ()
     cache = Vector.empty // clear so that events can be processed while the write is in progress.
@@ -52,6 +48,6 @@ trait TaskWriter[T] extends EventsourcedWriter[Long, Unit] with ActorLogging {
       Future.successful(emptyTasks)
   }
 
-  // Save a model to a DB
-  def write(t: T): Future[Unit]
+  // Save a series of models to a DB
+  def write(t: Vector[T]): Future[Unit]
 }

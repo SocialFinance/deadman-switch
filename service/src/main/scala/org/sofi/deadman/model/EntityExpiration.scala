@@ -18,7 +18,6 @@ object EntityExpiration {
   // Syntactic sugar on entity expiration model
   implicit class EntityExpirationOps(val e: EntityExpiration) extends AnyVal {
     def asTask: Task = Task(e.key, e.aggregate, e.entity, e.creation, e.ttl, Seq.empty, e.tags.split(","))
-    def save(implicit ec: ExecutionContext): Future[Unit] = EntityExpiration.save(e)
   }
 
   // Get expirations for an entity
@@ -30,19 +29,21 @@ object EntityExpiration {
     }
 
   // Create a entity expiration record in C*
-  def save(w: EntityExpiration)(implicit ec: ExecutionContext): Future[Unit] =
+  def save(models: List[EntityExpiration])(implicit ec: ExecutionContext): Future[Unit] =
     db.run {
       quote {
-        query[EntityExpiration]
-          .filter(_.entity == lift(w.entity))
-          .filter(_.aggregate == lift(w.aggregate))
-          .filter(_.key == lift(w.key))
-          .update(
-            _.ttl -> lift(w.ttl),
-            _.creation -> lift(w.creation),
-            _.expiration -> lift(w.expiration),
-            _.tags -> lift(w.tags)
-          )
+        liftQuery(models).foreach { w ⇒
+          query[EntityExpiration]
+            .filter(_.entity == w.entity)
+            .filter(_.aggregate == w.aggregate)
+            .filter(_.key == w.key)
+            .update(
+              _.ttl -> w.ttl,
+              _.creation -> w.creation,
+              _.expiration -> w.expiration,
+              _.tags -> w.tags
+            )
+        }
       }
     }
 }
