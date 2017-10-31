@@ -10,7 +10,7 @@ import scala.util.{ Failure, Success }
 final class TaskActor(val aggregate: String, val replica: String, val eventLog: ActorRef) extends EventsourcedActor with ActorLogging {
 
   // Implicit execution context
-  import context.dispatcher
+  private implicit val executionContext = context.dispatcher
 
   // Actor ID
   override val id = s"$aggregate-$replica"
@@ -29,8 +29,12 @@ final class TaskActor(val aggregate: String, val replica: String, val eventLog: 
 
   // Cancel a task
   private def cancel(id: String): Unit = {
-    tasks = tasks - id
-    warnings = warnings - id
+    if (tasks.contains(id)) {
+      tasks = tasks - id
+    }
+    if (warnings.contains(id)) {
+      warnings = warnings - id
+    }
   }
 
   // Schedule expiration and warning commands

@@ -16,27 +16,19 @@ final class CommandManager(val id: String, val eventLog: ActorRef) extends Event
     registry.get(aggregate) match {
       case Some(actor) ⇒ actor
       case None ⇒
-        if (recovering) {
-          log.info("Recovering actor for aggregate {}", aggregate)
-        }
         registry = registry + (aggregate -> context.actorOf(TaskActor.props(aggregate, id, eventLog)))
         registry(aggregate)
     }
 
   // Forward commands to aggregate specific components
   def onCommand: Receive = {
-    case st: ScheduleTask ⇒
-      actorFor(st.aggregate) forward st
-    case ct: CompleteTask ⇒
-      actorFor(ct.aggregate) forward ct
+    case st: ScheduleTask ⇒ actorFor(st.aggregate) forward st
+    case ct: CompleteTask ⇒ actorFor(ct.aggregate) forward ct
   }
 
   // Lazy load actors for non-expired task events
   def onEvent: Receive = {
-    case t: Task ⇒
-      if (!t.isExpired) {
-        val _ = actorFor(t.aggregate)
-      }
+    case t: Task ⇒ if (!t.isExpired) { val _ = actorFor(t.aggregate) }
   }
 }
 
