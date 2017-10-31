@@ -87,24 +87,24 @@ private final class CommandLine(val commandManager: ActorRef, val queryManager: 
 
       // Query expired tasks
 
-      case "query" :: "expired" :: "aggregate" :: id :: Nil ⇒
+      case "query" :: "aggregate" :: "expirations" :: id :: Nil ⇒
         queryManager ! GetExpirations(AGGREGATE, aggregate = Some(id))
 
-      case "query" :: "expired" :: "entity" :: id :: Nil ⇒
+      case "query" :: "entity" :: "expirations" :: id :: Nil ⇒
         queryManager ! GetExpirations(ENTITY, entity = Some(id))
 
-      case "query" :: "expired" :: "key" :: key :: window :: Nil ⇒
+      case "query" :: "key" :: "expirations" :: key :: window :: Nil ⇒
         queryManager ! GetByKey(key, window)
 
-      case "query" :: "expired" :: "tag" :: tag :: window :: Nil ⇒
+      case "query" :: "tag" :: "expirations" :: tag :: window :: Nil ⇒
         queryManager ! GetByTag(tag, window)
 
       // Query task warnings
 
-      case "query" :: "warnings" :: "aggregate" :: id :: Nil ⇒
+      case "query" :: "aggregate" :: "warnings" :: id :: Nil ⇒
         queryManager ! GetWarnings(AGGREGATE, aggregate = Some(id))
 
-      case "query" :: "warnings" :: "entity" :: id :: Nil ⇒
+      case "query" :: "entity" :: "warnings" :: id :: Nil ⇒
         queryManager ! GetWarnings(ENTITY, entity = Some(id))
 
       // Catch-all prompt
