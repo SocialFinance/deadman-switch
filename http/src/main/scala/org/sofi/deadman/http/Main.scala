@@ -27,7 +27,7 @@ object Main extends App with Server {
   implicit val materialize = ActorMaterializer()
 
   // Init actor API timeout
-  val duration = Duration(system.settings.config.getString("request-timeout"))
+  val duration = Duration(config.getString("request-timeout"))
   implicit val requestTimeout: Timeout = FiniteDuration(duration.length, duration.unit)
 
   // Activate replication endpoint
