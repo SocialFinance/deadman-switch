@@ -41,10 +41,41 @@ consisting of upper-case chars, lower-case chars and numbers.
 A series of custom task identifiers. These can be used to arbitrarily query expired tasks within a time window (day, week, or month).
 Tags must be lower-case strings WITHOUT spaces, numbers or special characters.
 
+## Project Layout
+
+**domain**
+
+Contains all command, event and query domain objects. Domain objects are represented as protocol buffers that are compiled to Scala
+case classes. Protocol buffers are a better alternative than Java serialization for event persistence. Also handles domain validation
+using cats `Validated`.
+
+**core**
+
+Contains all `Eventuate` event-sourcing components, event persistence and replication.
+
+**service**
+
+Contains the HTTP/JSON serving layer. Uses Akka streams to control the rate at which commands are sent to the core system.
+
+**client**
+
+TODO: Scala client lib
+
+**client-java**
+
+TODO: Java client lib
+
+**load**
+
+Contains manual integration testing logic. Can load a large amount of tasks into the service. Once loaded, tasks can be completed or,
+after waiting for task expiration, validated. Validation confirms that all expired tasks are written to the C* keyspace.
+
 ## TODO
 
-- Java annotations lib: Add the ablity to annotate java methods with @Schedule and @Complete
+- Java client lib
+- Scala client lib
 - User Interface: Create a Play Scala web applicatoin for querying expirations and warnings
+- Java annotations lib: Add the ablity to annotate java methods with @Schedule and @Complete (nice-to-have)
 - Play Scala lib: Add actions for scheduling and completing tasks (optional)
 
 ## References
