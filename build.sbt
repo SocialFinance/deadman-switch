@@ -23,8 +23,8 @@ lazy val root =
       publishLocal := {},
       publishArtifact := false,
       packagedArtifacts := Map.empty)
-    .dependsOn(domain, service, http, load)
-    .aggregate(domain, service, http, load)
+    .dependsOn(domain, core, service, load)
+    .aggregate(domain, core, service, load)
     .disablePlugins(RevolverPlugin, JavaAppPackaging, ProtocPlugin)
 
 lazy val domain = project
@@ -35,7 +35,7 @@ lazy val domain = project
   .enablePlugins(SbtNativePackager, ProtocPlugin)
   .disablePlugins(RevolverPlugin)
 
-lazy val service = project
+lazy val core = project
   .dependsOn(domain)
   .settings(baseSettings: _*)
   .settings(
@@ -44,8 +44,8 @@ lazy val service = project
   .enablePlugins(SbtNativePackager)
   .disablePlugins(ProtocPlugin, RevolverPlugin)
 
-lazy val http = project
-  .dependsOn(service)
+lazy val service = project
+  .dependsOn(core)
   .settings(baseSettings: _*)
   .settings(
     mappings in (Compile, packageBin) ++= (mappings in (domain, Compile, packageBin)).value,
