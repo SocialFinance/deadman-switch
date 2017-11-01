@@ -5,16 +5,13 @@ import scala.concurrent._
 import scala.concurrent.duration._
 
 // Complete some tasks in the deadman switch service
-object Complete extends App {
-
-  // HTTP service locations
-  val ports = Array(9876, 9877, 9878)
+object Complete extends App with Profile {
 
   // Complete tasks for the given aggregate
   private def completeTasks(aggregates: Seq[Int]): Future[Unit] = Future {
     println(s"Completing tasks for aggregates: ${aggregates.mkString(" ")}")
     aggregates.foreach { a ⇒
-      val tasks = (1 to NUM_ENTITIES).map { j ⇒
+      val tasks = (1 to numEntities).map { j ⇒
         Map[String, Any]("key" -> s"task$j", "aggregate" -> s"$a", "entity" -> s"${a - 1}")
       }
       val port = ports(a % ports.length)
@@ -28,7 +25,7 @@ object Complete extends App {
   // Complete tasks for a range of aggregates
   def completeAggregates() =
     Future.sequence {
-      (1 to NUM_AGGREGATES).grouped(10).map(completeTasks)
+      (1 to numAggregates).grouped(groupSize).map(completeTasks)
     }
 
   // Wait until all Futures are finished
