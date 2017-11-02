@@ -2,7 +2,6 @@ package org.sofi.deadman.load
 
 import com.typesafe.config.ConfigFactory
 import scala.collection.JavaConverters._
-import scala.concurrent.duration._
 import scala.util.Try
 
 trait Profile { this: App ⇒
@@ -17,7 +16,7 @@ trait Profile { this: App ⇒
   // Set ttl values on a 5 minute interval
   private val start = config.getInt("durations.start")
   private val end = config.getInt("durations.end")
-  val durations = (start to end).filter(_ % 5 == 0).map(_.minutes.toMillis).toArray
+  val durations = (start to end).filter(_ % 5 == 0).map(n => s"${n}min").toArray
 
   // Read load sizing
   val numAggregates = config.getInt("aggregates")

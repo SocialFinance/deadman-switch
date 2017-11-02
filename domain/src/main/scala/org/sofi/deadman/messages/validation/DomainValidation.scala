@@ -13,11 +13,11 @@ case object InvalidKey extends DomainValidation {
 }
 
 case object InvalidTTL extends DomainValidation {
-  val error = "ttl must be >= 1 second"
+  val error = "ttl must be a valid duration >= 1 second"
 }
 
 case object InvalidTTW extends DomainValidation {
-  val error = "ttw values must be >= 1 second and < ttl"
+  val error = "ttw values must be valid durations >= 1 second and < ttl"
 }
 
 case object InvalidTags extends DomainValidation {
