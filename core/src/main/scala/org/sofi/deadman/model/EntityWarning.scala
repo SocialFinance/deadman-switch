@@ -18,7 +18,7 @@ object EntityWarning {
 
   // Syntactic sugar on entity warning model
   implicit class EntityWarningOps(val w: EntityWarning) extends AnyVal {
-    def asTask: Task = Task(w.key, w.aggregate, w.entity, w.creation, w.ttl, Seq(w.ttw), w.tags.split(","))
+    def asTask: Task = Task(w.key, w.aggregate, w.entity, w.creation, w.ttl, Seq(w.ttw), w.tags.split(",").filterNot(_.isEmpty))
   }
 
   // Get warnings for an aggregate

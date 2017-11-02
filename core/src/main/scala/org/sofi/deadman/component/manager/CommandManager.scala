@@ -28,6 +28,7 @@ final class CommandManager(val id: String, val eventLog: ActorRef) extends Event
 
   // Lazy load actors for non-expired task events
   def onEvent: Receive = {
+    case Schedule(tasks) ⇒ tasks.filterNot(_.isExpired).foreach { t ⇒ val _ = actorFor(t.aggregate) }
     case t: Task ⇒ if (!t.isExpired) { val _ = actorFor(t.aggregate) }
   }
 }

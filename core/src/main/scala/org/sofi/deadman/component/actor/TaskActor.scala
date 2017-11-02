@@ -126,8 +126,10 @@ final class TaskActor(val aggregate: String, val replica: String, val eventLog: 
     case TaskActor.Tick ⇒ onTick()
   }
 
-  // Schedule or cancel expiration timers
+  // Schedule or cancel internal commands
   def onEvent: Receive = {
+    case s: Schedule ⇒ s.tasks.foreach(t ⇒ if (!t.isExpired) schedule(t))
+    case s: ScheduleTermination ⇒ s.terminations.foreach(t ⇒ cancel(t.id))
     case t: Task ⇒ if (!t.isExpired) schedule(t)
     case t: TaskTermination ⇒ cancel(t.id)
   }

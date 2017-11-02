@@ -43,3 +43,12 @@ message KeyExpiration {
     required string window = 3;    // Time window (a day[20170920] or month[201709])
     required uint64 ts = 4;        // Expiration timestamp
 }
+
+message Schedule {
+    repeated Task tasks = 1;       // A schedule is a sequence of tasks
+}
+
+message ScheduleTermination {
+    repeated TaskTermination terminations = 1; // A termination schedule is a sequence of task termination events
+}
+

@@ -7,6 +7,8 @@ import scala.util.Try
 
 package object validation {
 
+  type ValidationResult[A] = cats.data.ValidatedNel[DomainValidation, A]
+
   // String field must be non-empty
   private def validateString(field: String, value: String) =
     if (Try(value.trim).getOrElse("").nonEmpty) value.validNel else InvalidString(field).invalidNel
@@ -40,7 +42,7 @@ package object validation {
     if (ts.getOrElse(System.currentTimeMillis()) > 0) ts.validNel else InvalidTimestamp.invalidNel
 
   // Validate data fields and map them to a ScheduleTask command
-  def validate(key: String, agg: String, ent: String, ttl: String, ttw: Seq[String], tags: Seq[String], ts: Option[Long]) = (
+  def validate(key: String, agg: String, ent: String, ttl: String, ttw: Seq[String], tags: Seq[String], ts: Option[Long]): ValidationResult[ScheduleTask] = (
     validateKey(key),
     validateString("aggregate", agg),
     validateString("entity", ent),
@@ -51,7 +53,7 @@ package object validation {
   ).mapN(ScheduleTask.apply)
 
   // Validate data fields and map them to a CompleteTask command
-  def validateCompletion(key: String, agg: String, ent: String) = (
+  def validateCompletion(key: String, agg: String, ent: String): ValidationResult[CompleteTask] = (
     validateKey(key),
     validateString("aggregate", agg),
     validateString("entity", ent)

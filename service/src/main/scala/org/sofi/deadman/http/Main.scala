@@ -34,7 +34,7 @@ object Main extends App with Server {
   val location = new NetworkLocation(id)
 
   // Start REST API server
-  implicit val commandApi = new CommandApi(location.commandManager)
+  implicit val streamApi = new StreamApi(location.eventLog)
   implicit val queryApi = new QueryApi(location.queryManager)
   startup(new HttpRouter().routes)
 

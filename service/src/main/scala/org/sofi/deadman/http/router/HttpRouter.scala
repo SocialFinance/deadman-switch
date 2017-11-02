@@ -8,18 +8,16 @@ import org.sofi.deadman.http.api._
 import org.sofi.deadman.http.json._
 import org.sofi.deadman.http.request._
 
-final class HttpRouter(implicit command: CommandApi, query: QueryApi, am: ActorMaterializer) extends JsonProtocol {
-  import command._, query._
+final class HttpRouter(implicit query: QueryApi, stream: StreamApi, am: ActorMaterializer) extends JsonProtocol {
+  import query._, stream._
 
   // format: OFF
 
   private val schedule =
     path("deadman" / "api" / "v1" / "schedule") {
       entity(asSourceOf[ScheduleRequest]) { source ⇒
-        val scheduled = source.via(scheduleTaskFlow).runFold(Seq.empty[Seq[String]]) { (s, r) ⇒ s ++ r.map(_.errors) }
-        onSuccess(scheduled) { errors ⇒
-          val status = if (errors.exists(_.nonEmpty)) BadRequest else Created
-          complete(status -> Map("errors" -> errors))
+        onSuccess(scheduleTasks(source)) { tasks ⇒
+          complete(Created -> tasks)
         }
       }
     }
@@ -27,10 +25,8 @@ final class HttpRouter(implicit command: CommandApi, query: QueryApi, am: ActorM
   private val completed =
     path("deadman" / "api" / "v1" / "complete") {
       entity(asSourceOf[CompleteRequest]) { source ⇒
-        val completed = source.via(completeTaskFlow).runFold(Seq.empty[Seq[String]]) { (s, r) ⇒ s ++ r.map(_.errors) }
-        onSuccess(completed) { errors ⇒
-          val status = if (errors.exists(_.nonEmpty)) BadRequest else OK
-          complete(status -> Map("errors" -> errors))
+        onSuccess(completeTasks(source)) { count ⇒
+          complete(OK -> Map("completed" -> count))
         }
       }
     }

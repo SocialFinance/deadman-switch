@@ -21,7 +21,7 @@ final class NetworkLocation(val id: String)(implicit system: ActorSystem) {
   endpoint.activate()
 
   // Event Logs
-  private val eventLog = endpoint.logs("L1")
+  val eventLog = endpoint.logs("L1")
   private val tagLog = endpoint.logs("T1")
   private val keyLog = endpoint.logs("K1")
 
