@@ -8,5 +8,5 @@ final case class ScheduleRequest(
   ttl: String,
   ttw: Seq[String] = Seq.empty,
   tags: Seq[String] = Seq.empty,
-  ts: scala.Option[Long] = None
+  ts: Option[Long] = None
 )

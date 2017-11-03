@@ -77,7 +77,7 @@ final class StreamApi(val eventLog: ActorRef)(implicit system: ActorSystem, am: 
       .via(DurableEventWriter(WRITER_ID, eventLog))
       .map(_.payload.asInstanceOf[Task])
       .runFold(Seq.empty[Task])((a, t) ⇒ a :+ t)
-      .map(tasks => Right(Tasks(tasks)))
+      .map(tasks ⇒ Right(Tasks(tasks)))
       .recoverWith(errorMessage)
 
   // Use the Eventuate Akka streams adapter to persist task termination events directly to an event log
