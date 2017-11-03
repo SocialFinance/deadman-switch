@@ -22,26 +22,16 @@ private[view] trait QueryView extends EventsourcedView with ActorLogging {
       sender() ! Tasks(gt.queryKey.map(query).getOrElse(Seq.empty))
   }
 
-  // Insert a task into the view state
-  private def insertTask(t: Task): Unit = {
-    val key = taskKey(t)
-    val updated = state.getOrElse(key, Set.empty).filterNot(_.id == t.id) + t
-    state = state + (key -> updated)
-  }
-
-  // Delete a task from the view state
-  private def terminateTask(t: TaskTermination) = {
-    val key = taskTerminationKey(t)
-    val updated = state.getOrElse(key, Set.empty).filterNot(_.id == t.id)
-    state = state + (key -> updated)
-  }
-
   // Update the view state
   def onEvent: Receive = {
-    case Schedule(tasks) ⇒ tasks.foreach(insertTask)
-    case ScheduleTermination(terminations) ⇒ terminations.foreach(terminateTask)
-    case t: Task ⇒ insertTask(t)
-    case t: TaskTermination ⇒ terminateTask(t)
+    case t: Task ⇒
+      val key = taskKey(t)
+      val updated = state.getOrElse(key, Set.empty).filterNot(_.id == t.id) + t
+      state = state + (key -> updated)
+    case t: TaskTermination ⇒
+      val key = taskTerminationKey(t)
+      val updated = state.getOrElse(key, Set.empty).filterNot(_.id == t.id)
+      state = state + (key -> updated)
     case TaskExpiration(t, _) ⇒
       val key = taskKey(t)
       val updated = state.getOrElse(key, Set.empty).filterNot(_.id == t.id)

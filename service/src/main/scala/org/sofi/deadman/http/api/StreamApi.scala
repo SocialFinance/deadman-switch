@@ -13,7 +13,7 @@ import org.sofi.deadman.messages.event._
 import org.sofi.deadman.messages.query._
 import org.sofi.deadman.messages.validation._
 import scala.concurrent.Future
-import scala.concurrent.duration._
+import scala.util.control.NonFatal
 
 final class StreamApi(val eventLog: ActorRef)(implicit system: ActorSystem, am: ActorMaterializer) {
 
@@ -26,76 +26,69 @@ final class StreamApi(val eventLog: ActorRef)(implicit system: ActorSystem, am: 
   // Writer ID
   private val WRITER_ID = "deadman-stream-api-v1"
 
-  // Stream is chunked into groups of elements received within a time window
-  private val GROUP_SIZE = 10
+  // Make sure the command timestamp is set on a schedule request
+  private def setTimestamp(r: ScheduleRequest): ScheduleRequest =
+    if (r.ts.isDefined) r else r.copy(ts = Some(System.currentTimeMillis()))
 
-  // Stream group time window
-  private val TIME_WINDOW = 1.second
-
-  // Make sure the command timestamp is set
-  private def setTimestamps(requests: Seq[ScheduleRequest]) =
-    requests.map(r ⇒ if (r.ts.isDefined) r else r.copy(ts = Some(System.currentTimeMillis())))
-
-  // Run validation on a sequence of schedule requests
-  private def validateRequests(requests: Seq[ScheduleRequest]) =
-    requests.map(r ⇒ validate(r.key, r.aggregate, r.entity, r.ttl, r.ttw, r.tags, r.ts))
+  // Run validation on a schedule request
+  private def validateRequest(r: ScheduleRequest): ValidationResult[ScheduleTask] =
+    validate(r.key, r.aggregate, r.entity, r.ttl, r.ttw, r.tags, r.ts)
 
   // Run validation on a sequence of complete requests
-  private def validateCompleteRequests(requests: Seq[CompleteRequest]) =
-    requests.map(r ⇒ validateCompletion(r.key, r.aggregate, r.entity))
+  private def validateCompleteRequest(r: CompleteRequest) =
+    validateCompletion(r.key, r.aggregate, r.entity)
 
   // Filter out valid schedule task commands and log validation errors
-  private def createEvents(results: Seq[ValidationResult[ScheduleTask]]) = results.flatMap {
-    case Valid(command) ⇒ Some(command.event)
-    case Invalid(nel) ⇒
-      nel.toList.foreach(dv ⇒ system.log.error(dv.error))
-      None
-  }
+  private def createEvent(result: ValidationResult[ScheduleTask]): Task =
+    result match {
+      case Valid(command) ⇒ command.event
+      case Invalid(nel) ⇒ throw new Exception(nel.map(_.error).toList.mkString(", "))
+    }
 
   // Filter out valid complete task commands and log validation errors
-  private def createCompleteEvents(results: Seq[ValidationResult[CompleteTask]]) = results.flatMap {
-    case Valid(command) ⇒ Some(command.event)
-    case Invalid(nel) ⇒
-      nel.toList.foreach(dv ⇒ system.log.error(dv.error))
-      None
-  }
+  private def createCompleteEvent(result: ValidationResult[CompleteTask]) =
+    result match {
+      case Valid(command) ⇒ command.event
+      case Invalid(nel) ⇒ throw new Exception(nel.map(_.error).toList.mkString(", "))
+    }
 
   // Create a durable event from a task sequence. NOTE: Assumes all events have the same aggregate
-  private def createDurableEvent(tasks: Seq[Task]) = {
-    system.log.info("Creating durable event with {} tasks", tasks.size)
-    DurableEvent(
-      payload = Schedule(tasks),
-      emitterAggregateId = tasks.headOption.map(_.aggregate)
-    )
-  }
+  private def createDurableEvent(t: Task): DurableEvent =
+    DurableEvent(payload = t, emitterAggregateId = Option(t.aggregate))
 
   // Create a durable event from a task termination sequence. NOTE: Assumes all events have the same aggregate
-  private def createTerminationDurableEvent(terminations: Seq[TaskTermination]) = DurableEvent(
-    payload = ScheduleTermination(terminations),
-    emitterAggregateId = terminations.headOption.map(_.aggregate)
-  )
+  private def createTerminationDurableEvent(t: TaskTermination) =
+    DurableEvent(payload = t, emitterAggregateId = Option(t.aggregate))
+
+  // Stream exception handler
+  def errorMessage[T]: PartialFunction[Throwable, Future[Either[String, T]]] = {
+    case NonFatal(error) ⇒
+      system.log.error("Stream API error: {}", error)
+      Future.successful(Left(error.getMessage))
+  }
 
   // Use the Eventuate Akka streams adapter to persist task events directly to an event log
-  def scheduleTasks(source: Source[ScheduleRequest, NotUsed]): Future[Tasks] =
+  def scheduleTasks(source: Source[ScheduleRequest, NotUsed]): Future[Either[String, Tasks]] =
     source.buffer(BUFFER_SIZE, OverflowStrategy.backpressure)
-      .groupedWithin(GROUP_SIZE, TIME_WINDOW)
-      .map(setTimestamps)
-      .map(validateRequests)
-      .map(createEvents)
+      .map(setTimestamp)
+      .map(validateRequest)
+      .map(createEvent)
       .map(createDurableEvent)
       .via(DurableEventWriter(WRITER_ID, eventLog))
-      .map(_.payload.asInstanceOf[Schedule])
-      .runFold(Seq.empty[Task])((a, s) ⇒ a ++ s.tasks)
-      .map(Tasks(_))
+      .map(_.payload.asInstanceOf[Task])
+      .runFold(Seq.empty[Task])((a, t) ⇒ a :+ t)
+      .map(tasks => Right(Tasks(tasks)))
+      .recoverWith(errorMessage)
 
   // Use the Eventuate Akka streams adapter to persist task termination events directly to an event log
-  def completeTasks(source: Source[CompleteRequest, NotUsed]): Future[Int] =
+  def completeTasks(source: Source[CompleteRequest, NotUsed]): Future[Either[String, Seq[TaskTermination]]] =
     source.buffer(BUFFER_SIZE, OverflowStrategy.backpressure)
-      .groupedWithin(GROUP_SIZE, TIME_WINDOW)
-      .map(validateCompleteRequests)
-      .map(createCompleteEvents)
+      .map(validateCompleteRequest)
+      .map(createCompleteEvent)
       .map(createTerminationDurableEvent)
       .via(DurableEventWriter(WRITER_ID, eventLog))
-      .map(_.payload.asInstanceOf[ScheduleTermination])
-      .runFold(0)((a, s) ⇒ a + s.terminations.size)
+      .map(_.payload.asInstanceOf[TaskTermination])
+      .runFold(Seq.empty[TaskTermination])((a, t) ⇒ a :+ t)
+      .map(Right(_))
+      .recoverWith(errorMessage)
 }

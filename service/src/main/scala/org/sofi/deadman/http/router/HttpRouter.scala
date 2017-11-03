@@ -16,8 +16,9 @@ final class HttpRouter(implicit query: QueryApi, stream: StreamApi, am: ActorMat
   private val schedule =
     path("deadman" / "api" / "v1" / "schedule") {
       entity(asSourceOf[ScheduleRequest]) { source ⇒
-        onSuccess(scheduleTasks(source)) { tasks ⇒
-          complete(Created -> tasks)
+        onSuccess(scheduleTasks(source)) {
+          case Left(error) => complete(BadRequest -> Map("error" -> error))
+          case Right(tasks) => complete(Created -> tasks)
         }
       }
     }
@@ -25,8 +26,9 @@ final class HttpRouter(implicit query: QueryApi, stream: StreamApi, am: ActorMat
   private val completed =
     path("deadman" / "api" / "v1" / "complete") {
       entity(asSourceOf[CompleteRequest]) { source ⇒
-        onSuccess(completeTasks(source)) { count ⇒
-          complete(OK -> Map("completed" -> count))
+        onSuccess(completeTasks(source)) {
+          case Left(error) => complete(BadRequest -> Map("error" -> error))
+          case Right(terminated) => complete(Map("completed" -> terminated))
         }
       }
     }

@@ -17,6 +17,7 @@ trait JsonProtocol extends DefaultJsonProtocol {
 
   // Event
   implicit val taskJsonFormat = jsonFormat7(Task.apply)
+  implicit val taskTerminationJsonFormat = jsonFormat3(TaskTermination.apply)
 
   // Query
   implicit val tasksJsonFormat = jsonFormat1(Tasks.apply)
