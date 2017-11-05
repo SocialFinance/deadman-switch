@@ -10,20 +10,15 @@ object Main extends App {
   import EventStream._
 
   // Filter out everything except task warnings and expirations
-  final val eventFilter = new Filter {
-    override def apply(any: Any) = any match {
-      case _: TaskExpiration ⇒ true
-      case _: TaskWarning ⇒ true
-      case _ ⇒ false
-    }
-  }
+  final val expirations = new Filter { override def apply(any: Any) = any.isInstanceOf[TaskExpiration] }
+  final val warnings = new Filter { override def apply(any: Any) = any.isInstanceOf[TaskWarning] }
 
   // Set offset, aggregate and filter
   final val settings = new Settings {
-    val id = "deadman-client-source-test"
+    val id = "deadman-event-stream-example"
     override val offset = Try(args(0).toLong).toOption
     override val aggregate = Some("1")
-    override def filter = eventFilter
+    override def filter = expirations | warnings
   }
 
   // Print task warnings and expirations to stdout
