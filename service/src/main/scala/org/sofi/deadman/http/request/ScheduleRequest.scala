@@ -10,3 +10,11 @@ final case class ScheduleRequest(
   tags: Seq[String] = Seq.empty,
   ts: Option[Long] = None
 )
+
+object ScheduleRequest {
+  import org.sofi.deadman.messages._
+  implicit class ScheduleRequestOps(val r: ScheduleRequest) extends AnyVal {
+    def ensureTimestamp = if (r.ts.isDefined) r else r.copy(ts = Some(System.currentTimeMillis()))
+    def validate = validation.validate(r.key, r.aggregate, r.entity, r.ttl, r.ttw, r.tags, r.ts)
+  }
+}

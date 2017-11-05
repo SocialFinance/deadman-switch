@@ -6,5 +6,5 @@ trait Settings {
   def port: Int = 2551
   def offset: Option[Long] = None
   def aggregate: Option[String] = None
-  def filter: Filter = new Filter{}
+  def filter: Filter = new Filter {}
 }

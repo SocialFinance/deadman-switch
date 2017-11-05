@@ -13,12 +13,12 @@ object Main extends App {
   final val expirations = new Filter { override def apply(any: Any) = any.isInstanceOf[TaskExpiration] }
   final val warnings = new Filter { override def apply(any: Any) = any.isInstanceOf[TaskWarning] }
 
-  // Set offset, aggregate and filter
+  // Only show warnings and expirations for aggregate "1" starting with a given sequence number offset
   final val settings = new Settings {
     val id = "deadman-event-stream-example"
     override val offset = Try(args(0).toLong).toOption
     override val aggregate = Some("1")
-    override def filter = expirations | warnings
+    override val filter = expirations | warnings
   }
 
   // Print task warnings and expirations to stdout
