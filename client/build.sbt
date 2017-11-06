@@ -3,6 +3,8 @@ name := "deadman-switch-client"
 resolvers += "Eventuate Releases" at "https://dl.bintray.com/rbmhtechnology/maven"
 
 libraryDependencies ++= Seq(
+  "com.typesafe.akka"  %% "akka-http"                % "10.0.10",
+  "com.typesafe.akka"  %% "akka-http-spray-json"     % "10.0.10",
   "com.rbmhtechnology" %% "eventuate-core"           % "0.8.1",
   "com.rbmhtechnology" %% "eventuate-log-leveldb"    % "0.8.1",
   "com.rbmhtechnology" %% "eventuate-adapter-stream" % "0.8.1",
