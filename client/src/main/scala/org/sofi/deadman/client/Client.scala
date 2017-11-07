@@ -12,7 +12,7 @@ trait Client {
   def schedule(req: Seq[TaskReq])(implicit ec: ExecutionContext): Future[Tasks]
 
   // Submit a complete request
-  def complete(req: Seq[CompleteReq])(implicit ec: ExecutionContext): Future[Int]
+  def complete(req: Seq[CompleteReq])(implicit ec: ExecutionContext): Future[TaskTerminations]
 }
 
 object Client {

@@ -28,7 +28,7 @@ final class HttpRouter(implicit query: QueryApi, stream: StreamApi, am: ActorMat
       entity(asSourceOf[CompleteRequest]) { source ⇒
         onSuccess(completeTasks(source)) {
           case Left(error) ⇒ complete(BadRequest -> Map("error" -> error))
-          case Right(terminated) ⇒ complete(Map("completed" -> terminated))
+          case Right(terminated) ⇒ complete(terminated)
         }
       }
     }

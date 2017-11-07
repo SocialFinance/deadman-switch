@@ -12,6 +12,7 @@ import scala.concurrent._
 final class AsyncClient(val host: Host) extends Client with JsonProtocol {
 
   private val SCHEDULE_URI = s"http://${host.host}:${host.port}/deadman/api/v1/schedule"
+  private val COMPLETE_URI = s"http://${host.host}:${host.port}/deadman/api/v1/complete"
 
   private val http = Http(actorSystem)
 
@@ -23,9 +24,13 @@ final class AsyncClient(val host: Host) extends Client with JsonProtocol {
       }
     }
 
-  // TODO
-  override def complete(req: Seq[CompleteReq])(implicit ec: ExecutionContext): Future[Int] =
-    Future.failed(new NotImplementedError())
+  override def complete(req: Seq[CompleteReq])(implicit ec: ExecutionContext): Future[TaskTerminations] =
+    Marshal(req).to[RequestEntity] flatMap { entity ⇒
+      val req = HttpRequest(method = HttpMethods.POST, uri = COMPLETE_URI, entity = entity)
+      http.singleRequest(req) flatMap { rep ⇒
+        Unmarshal(rep.entity).to[TaskTerminations]
+      }
+    }
 }
 
 object AsyncClient {

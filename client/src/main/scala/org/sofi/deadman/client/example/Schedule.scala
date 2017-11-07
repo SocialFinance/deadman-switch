@@ -1,7 +1,6 @@
 package org.sofi.deadman.client.example
 
-import org.sofi.deadman.client._
-import org.sofi.deadman.client.req.TaskReq
+import org.sofi.deadman.client._, req._
 import scala.concurrent._
 import scala.concurrent.duration._
 
@@ -22,11 +21,16 @@ object Schedule extends App {
     TaskReq("1", "3", s"task3$runID", "20s")
   )
 
-  // Schedule some tasks that expire
-  val tasksF = Client(host).schedule(req)
-  tasksF.foreach(println)
+  // Create client
+  val client = Client(host)
 
-  // Wait for the results
-  Await.result(tasksF, 30.seconds)
-  println("done!")
+  // Schedule some tasks that expire
+  client.schedule(req).onSuccess {
+    case result: Any ⇒
+      println(result)
+      // Complete one of the tasks and wait for that result
+      val completeF = client.complete(Seq(CompleteReq("1", "3", s"task3$runID")))
+      completeF.foreach(println)
+      Await.result(completeF, 30.seconds)
+  }
 }

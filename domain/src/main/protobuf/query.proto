@@ -50,3 +50,7 @@ message GetByKey {
 message Tasks {
     repeated Task tasks = 1;
 }
+
+message TaskTerminations {
+    repeated TaskTermination completed = 1;
+}

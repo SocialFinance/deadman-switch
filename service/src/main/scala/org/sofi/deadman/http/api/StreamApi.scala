@@ -62,13 +62,13 @@ final class StreamApi(val eventLog: ActorRef)(implicit system: ActorSystem, am: 
   }
 
   // Use the Eventuate Akka streams adapter to persist task termination events directly to an event log
-  def completeTasks(source: Source[CompleteRequest, NotUsed]): Future[Either[String, Seq[TaskTermination]]] =
+  def completeTasks(source: Source[CompleteRequest, NotUsed]): Future[Either[String, TaskTerminations]] =
     source.buffer(BUFFER_SIZE, OverflowStrategy.backpressure)
       .map(_.validate)
       .map(createTaskTerminationEvent)
       .via(eventWriter)
       .map(_.payload.asInstanceOf[TaskTermination])
       .runFold(Seq.empty[TaskTermination])((a, t) ⇒ a :+ t)
-      .map(Right(_))
+      .map(t ⇒ Right(TaskTerminations(t)))
       .recoverWith(errorMessage)
 }
