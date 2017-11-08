@@ -1,6 +1,6 @@
-package org.sofi.deadman.client.example
+package org.sofi.deadman.client
+package example
 
-import org.sofi.deadman.client._
 import org.sofi.deadman.client.stream._
 import org.sofi.deadman.messages.event._
 import scala.util.Try
@@ -9,17 +9,17 @@ import scala.util.Try
 object Listen extends App {
 
   // Filter out everything except expirations
-  final val expirations = new Filter {
+  val expirations = new EventFilter {
     override def apply(any: Any) = any.isInstanceOf[TaskExpiration]
   }
 
   // Filter out everything except warnings
-  final val warnings = new Filter {
+  val warnings = new EventFilter {
     override def apply(any: Any) = any.isInstanceOf[TaskWarning]
   }
 
   // Only show warnings and expirations for aggregate "1" starting with a given sequence number offset
-  final val settings = new Settings {
+  val settings = new StreamSettings {
     val id = "deadman-event-stream-example"
     override val offset = Try(args(0).toLong).toOption
     override val aggregate = Some("1")
@@ -27,7 +27,8 @@ object Listen extends App {
   }
 
   // Print task warnings and expirations to stdout
-  EventStream(settings).events
+  val stream = EventStream(settings)
+  stream.events
     .map(_.payload)
     .runForeach { e ⇒
       println(s"${e.getClass.getName}")

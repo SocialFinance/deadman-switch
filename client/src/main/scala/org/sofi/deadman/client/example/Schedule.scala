@@ -1,17 +1,16 @@
-package org.sofi.deadman.client.example
+package org.sofi.deadman.client
+package example
 
-import org.sofi.deadman.client._, req._
+import org.sofi.deadman.client.req._
+import org.sofi.deadman.messages.query._
 import scala.concurrent._
 import scala.concurrent.duration._
 
-// Example deadman switch client `schedule` usage
+// Example deadman switch client `schedule` and `complete` usage
 object Schedule extends App {
 
-  // Execution context
-  final implicit val executionContext = actorSystem.dispatcher
-
   // Config
-  val host = new Host { override val port = 9876 }
+  val settings = new Settings { override val port = 9876 }
   val runID = System.currentTimeMillis()
 
   // Request
@@ -22,12 +21,12 @@ object Schedule extends App {
   )
 
   // Create client
-  val client = Client(host)
+  val client = Client(settings)
 
   // Schedule some tasks that expire
   client.schedule(req).onSuccess {
-    case result: Any ⇒
-      println(result)
+    case Tasks(tasks) ⇒
+      println(tasks)
       // Complete one of the tasks and wait for that result
       val completeF = client.complete(Seq(CompleteReq("1", "3", s"task3$runID")))
       completeF.foreach(println)

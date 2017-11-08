@@ -6,7 +6,7 @@ import com.rbmhtechnology.eventuate.adapter.stream._
 import com.rbmhtechnology.eventuate.log.leveldb._
 import org.sofi.deadman.client._
 
-final class EventStream(val settings: Settings) {
+final class EventStream(val settings: StreamSettings) {
 
   // Connect to a replication endpoint and activate
   private val connection = ReplicationConnection(settings.host, settings.port, actorSystem.name)
@@ -26,5 +26,5 @@ final class EventStream(val settings: Settings) {
 }
 
 object EventStream {
-  def apply(settings: Settings) = new EventStream(settings)
+  def apply(settings: StreamSettings) = new EventStream(settings)
 }

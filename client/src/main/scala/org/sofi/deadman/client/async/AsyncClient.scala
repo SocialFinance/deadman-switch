@@ -1,4 +1,5 @@
-package org.sofi.deadman.client.async
+package org.sofi.deadman.client
+package async
 
 import akka.http.scaladsl._
 import akka.http.scaladsl.marshalling.Marshal
@@ -9,30 +10,27 @@ import org.sofi.deadman.client.req._
 import org.sofi.deadman.messages.query._
 import scala.concurrent._
 
-final class AsyncClient(val host: Host) extends Client with JsonProtocol {
+final class AsyncClient(val settings: Settings) extends Client[Future] with JsonProtocol {
 
-  private val SCHEDULE_URI = s"http://${host.host}:${host.port}/deadman/api/v1/schedule"
-  private val COMPLETE_URI = s"http://${host.host}:${host.port}/deadman/api/v1/complete"
-
-  private val http = Http(actorSystem)
-
-  override def schedule(req: Seq[TaskReq])(implicit ec: ExecutionContext): Future[Tasks] =
+  def schedule(req: Seq[TaskReq]): Future[Tasks] =
     Marshal(req).to[RequestEntity] flatMap { entity ⇒
-      val req = HttpRequest(method = HttpMethods.POST, uri = SCHEDULE_URI, entity = entity)
-      http.singleRequest(req) flatMap { rep ⇒
+      val scheduleUri = s"http://${settings.host}:${settings.port}/deadman/api/v1/schedule"
+      val req = HttpRequest(method = HttpMethods.POST, uri = scheduleUri, entity = entity)
+      Http().singleRequest(req) flatMap { rep ⇒
         Unmarshal(rep.entity).to[Tasks]
       }
     }
 
-  override def complete(req: Seq[CompleteReq])(implicit ec: ExecutionContext): Future[TaskTerminations] =
+  def complete(req: Seq[CompleteReq]): Future[TaskTerminations] =
     Marshal(req).to[RequestEntity] flatMap { entity ⇒
-      val req = HttpRequest(method = HttpMethods.POST, uri = COMPLETE_URI, entity = entity)
-      http.singleRequest(req) flatMap { rep ⇒
+      val completeUri = s"http://${settings.host}:${settings.port}/deadman/api/v1/complete"
+      val req = HttpRequest(method = HttpMethods.POST, uri = completeUri, entity = entity)
+      Http().singleRequest(req) flatMap { rep ⇒
         Unmarshal(rep.entity).to[TaskTerminations]
       }
     }
 }
 
 object AsyncClient {
-  def apply(host: Host): AsyncClient = new AsyncClient(host)
+  def apply(settings: Settings): AsyncClient = new AsyncClient(settings)
 }
