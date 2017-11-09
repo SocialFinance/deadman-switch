@@ -1,15 +1,15 @@
 package org.sofi.deadman.load
 
-import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
 import com.typesafe.config.ConfigFactory
 import org.sofi.deadman.client.stream._
 import org.sofi.deadman.messages.event._
 
-object Listener extends App {
+// Listen for task expiration and warning events emitted from the deadman switch service
+object Listen extends App {
 
   // Create an actor system
-  implicit val actorSystem = ActorSystem("deadman-switch-actor-system", ConfigFactory.load("stream").resolve())
+  implicit val actorSystem = EventStream.actorSystem(ConfigFactory.load("stream").resolve())
   implicit val materializer = ActorMaterializer()
 
   // Filter out everything except expirations
