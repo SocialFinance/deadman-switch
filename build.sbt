@@ -65,9 +65,11 @@ lazy val client = project
   .disablePlugins(ProtocPlugin, RevolverPlugin)
 
 lazy val load = project
-  .dependsOn(domain)
+  .dependsOn(client)
   .settings(baseSettings: _*)
   .settings(
+    publishLocal := {},
+    publishArtifact := false,
     publish in Docker := {},
     publishLocal in Docker := {})
   .enablePlugins(SbtNativePackager)

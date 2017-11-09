@@ -6,3 +6,14 @@ libraryDependencies ++= Seq(
   "org.apache.httpcomponents"    % "fluent-hc"                 % "4.5.1",
   "com.fasterxml.jackson.module" % "jackson-module-scala_2.11" % "2.9.1"
 )
+
+fork in Test := true
+fork in run := true
+
+javacOptions in (Compile, compile) ++= Seq(
+  "-source", "1.8",
+  "-target", "1.8",
+  "-Xlint:unchecked",
+  "-Xlint:deprecation",
+  "-Xlint:-options"
+)

@@ -9,7 +9,7 @@ final case class CompleteRequest(
 
 object CompleteRequest {
   import org.sofi.deadman.messages._
-  implicit class ScheduleRequestOps(val r: CompleteRequest) extends AnyVal {
+  implicit class CompleteRequestOps(val r: CompleteRequest) extends AnyVal {
     def validate = validation.validateCompletion(r.key, r.aggregate, r.entity)
   }
 }

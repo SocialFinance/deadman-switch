@@ -14,9 +14,6 @@ libraryDependencies ++= Seq(
   "org.scalatest"      %% "scalatest"                % "3.0.0"  % "test"
 )
 
-fork in Test := true
-fork in run := true
-
 javacOptions in (Compile, compile) ++= Seq(
   "-source", "1.8",
   "-target", "1.8",

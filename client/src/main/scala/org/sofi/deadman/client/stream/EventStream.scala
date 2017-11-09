@@ -1,15 +1,16 @@
 package org.sofi.deadman.client.stream
 
+import akka.actor._
 import akka.stream.scaladsl._
 import com.rbmhtechnology.eventuate._
 import com.rbmhtechnology.eventuate.adapter.stream._
 import com.rbmhtechnology.eventuate.log.leveldb._
 import org.sofi.deadman.client._
 
-final class EventStream(val settings: StreamSettings) {
+final class EventStream(val settings: StreamSettings)(implicit val system: ActorSystem) {
 
   // Connect to a replication endpoint and activate
-  private val connection = ReplicationConnection(settings.host, settings.port, actorSystem.name)
+  private val connection = ReplicationConnection(settings.host, settings.port, system.name)
   private val endpoint =
     new ReplicationEndpoint(settings.id, Set(eventLogName), logId ⇒ LeveldbEventLog.props(logId), Set(connection))
   endpoint.activate()
@@ -26,5 +27,5 @@ final class EventStream(val settings: StreamSettings) {
 }
 
 object EventStream {
-  def apply(settings: StreamSettings) = new EventStream(settings)
+  def apply(settings: StreamSettings)(implicit system: ActorSystem) = new EventStream(settings)
 }

@@ -1,35 +1,38 @@
 package org.sofi.deadman.load
 
-import scala.concurrent.ExecutionContext.Implicits.global
+import akka.actor.ActorSystem
+import akka.stream.ActorMaterializer
+import org.sofi.deadman.client._
+import org.sofi.deadman.client.req._
 import scala.concurrent._
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 
 // Complete some tasks in the deadman switch service
 object Complete extends App with Profile {
 
+  // Create an actor system
+  implicit val actorSystem = ActorSystem("complete-actor-system", config)
+  implicit val materializer = ActorMaterializer()
+
+  // Create client
+  val settings = new Settings { override val port = scala.util.Random.shuffle(ports).head }
+  val client = Client(settings)
+
   // Complete tasks for the given aggregate
-  private def completeTasks(aggregates: Seq[Int]): Future[Unit] = Future {
+  private def completeTasks(aggregates: Seq[Int]) = {
     println(s"Completing tasks for aggregates: ${aggregates.mkString(" ")}")
-    aggregates.foreach { a ⇒
-      val tasks = (1 to numEntities).map { j ⇒
-        Map[String, Any]("key" -> s"task$j", "aggregate" -> s"$a", "entity" -> s"${a - 1}")
-      }
-      val port = ports(a % ports.length)
-      val rep = Http.post(s"http://127.0.0.1:$port/deadman/api/v1/complete", Json.encode(tasks))
-      if (rep.status != Http.OK) {
-        println(s"${rep.status}: ${rep.body}")
+    val completed = Future.sequence {
+      aggregates.map { a ⇒
+        val reqs = (1 to numEntities).map(k ⇒ CompleteReq(s"$a", s"${a - 1}", s"task$k"))
+        client.complete(reqs)
       }
     }
+    Await.result(completed, 5.minutes)
   }
 
   // Complete tasks for a range of aggregates
-  def completeAggregates() =
-    Future.sequence {
-      (1 to numAggregates).grouped(groupSize).map(completeTasks)
-    }
-
-  // Wait until all Futures are finished
-  Await.result(completeAggregates(), 10.minutes)
+  (1 to numAggregates).grouped(groupSize).foreach(completeTasks)
   println("done!")
-
+  actorSystem.terminate()
 }

@@ -1,12 +1,16 @@
-package org.sofi.deadman.client
-package example
+package org.sofi.deadman.load
 
+import akka.actor.ActorSystem
+import akka.stream.ActorMaterializer
+import com.typesafe.config.ConfigFactory
 import org.sofi.deadman.client.stream._
 import org.sofi.deadman.messages.event._
-import scala.util.Try
 
-// Example deadman switch client `event stream` usage
-object Listen extends App {
+object Listener extends App {
+
+  // Create an actor system
+  implicit val actorSystem = ActorSystem("deadman-switch-actor-system", ConfigFactory.load("stream").resolve())
+  implicit val materializer = ActorMaterializer()
 
   // Filter out everything except expirations
   val expirations = new EventFilter {
@@ -21,17 +25,13 @@ object Listen extends App {
   // Only show warnings and expirations for aggregate "1" starting with a given sequence number offset
   val settings = new StreamSettings {
     val id = "deadman-event-stream-example"
-    override val offset = Try(args(0).toLong).toOption
     override val aggregate = Some("1")
     override val filter = expirations or warnings
   }
 
   // Print task warnings and expirations to stdout
-  val stream = EventStream(settings)
-  stream.events
-    .map(_.payload)
-    .runForeach { e ⇒
-      println(s"${e.getClass.getName}")
-      println(s"${e.toString}")
-    }
+  EventStream(settings).events.runForeach { event ⇒
+    val payload = event.payload
+    println(s"${event.localSequenceNr} ${payload.getClass.getName}\n${payload.toString}")
+  }
 }
