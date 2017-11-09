@@ -5,7 +5,6 @@ import akka.stream.ActorMaterializer
 import org.sofi.deadman.client._
 import org.sofi.deadman.client.req._
 import scala.concurrent._
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 
 // Load some tasks into the deadman switch service
@@ -13,14 +12,17 @@ object Load extends App with Profile {
 
   // Create an actor system
   implicit val actorSystem = ActorSystem("load-actor-system", config)
+  implicit val executionContext = actorSystem.dispatcher
   implicit val materializer = ActorMaterializer()
 
   // Create client
-  val settings = new Settings { override val port = scala.util.Random.shuffle(ports).head }
+  val settings = new Settings {
+    override val port = scala.util.Random.shuffle(ports).head
+  }
   val client = Client(settings)
 
-  // Schedule tasks for the given aggregates
-  private def scheduleTasks(aggregates: Seq[Int]) = {
+  // Schedule tasks for a range of aggregates
+  (1 to numAggregates).grouped(groupSize).foreach { aggregates ⇒
     println(s"Scheduling tasks for aggregates: ${aggregates.mkString(" ")}")
     val tasks = Future.sequence {
       aggregates.map { a ⇒
@@ -32,11 +34,6 @@ object Load extends App with Profile {
     }
     Await.result(tasks, 5.minutes)
   }
-
-  // Schedule tasks for a range of aggregates
-  (1 to numAggregates).grouped(groupSize).foreach(scheduleTasks)
-
-  // Wait until complete
   println("done!")
   actorSystem.terminate()
 }

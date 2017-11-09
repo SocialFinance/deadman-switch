@@ -88,6 +88,7 @@ final class TaskActor(val aggregate: String, val replica: String, val eventLog: 
   private def persistTaskTermination(event: TaskTermination): Unit = {
     if (!tasks.contains(event.id)) {
       log.warning("Task not found: {}", event.id)
+      sender() ! CommandResponse(ERROR, Seq(s"Task not found: ${event.id}"))
     } else {
       log.info(s"Completing Task: ${event.id}")
       persist(event) {
