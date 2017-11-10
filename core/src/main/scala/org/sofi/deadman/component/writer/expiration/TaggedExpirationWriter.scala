@@ -25,7 +25,7 @@ final class TaggedExpirationWriter(val id: String, val eventLog: ActorRef) exten
   // Convert events to models and batch. Note: An event handler should never write to the database directly.
   def onEvent = {
     case TaggedExpiration(task, tag, window, ts) ⇒
-      batch(TagExpiration(tag, window, ts, task.aggregate, task.entity, task.key, task.ttl, task.ts, task.tags.sorted.mkString(",")))
+      batch(TagExpiration(tag, window, ts, task.aggregate, task.entity, task.key, task.ttl, task.ts, task.tags.toSet))
   }
 
   // Save a tagged expiration to C*

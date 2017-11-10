@@ -23,7 +23,7 @@ final class EntityExpirationWriter(val id: String, val eventLog: ActorRef) exten
   // Convert events to models and batch. Note: An event handler should never write to the database directly.
   def onEvent = {
     case TaskExpiration(t, exp) ⇒
-      batch(EntityExpiration(t.entity, t.key, t.aggregate, t.ttl, t.ts, exp, t.tags.sorted.mkString(",")))
+      batch(EntityExpiration(t.entity, t.key, t.aggregate, t.ttl, t.ts, exp, t.tags.toSet))
   }
 
   // Save an entity expiration to C*

@@ -9,7 +9,7 @@ final case class TagExpiration(
   key: String,
   ttl: Long,
   creation: Long,
-  tags: String
+  tags: Set[String]
 )
 
 object TagExpiration {
@@ -19,7 +19,7 @@ object TagExpiration {
 
   // Syntactic sugar on a tagged expiration model
   implicit class TagExpirationOps(val e: TagExpiration) extends AnyVal {
-    def asTask: Task = Task(e.key, e.aggregate, e.entity, e.creation, e.ttl, Seq.empty, e.tags.split(",").filterNot(_.isEmpty))
+    def asTask: Task = Task(e.key, e.aggregate, e.entity, e.creation, e.ttl, Seq.empty, e.tags.toSeq.sorted)
   }
 
   // Get expirations for the given tag and time window, limited to a set time range

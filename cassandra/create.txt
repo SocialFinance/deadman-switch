@@ -24,7 +24,7 @@ CREATE TABLE aggregate_warning (
   ttl BIGINT,
   creation BIGINT,
   warning BIGINT,
-  tags TEXT,
+  tags SET<TEXT>,
   PRIMARY KEY (aggregate, entity, key, ttw)
 );
 
@@ -36,7 +36,7 @@ CREATE TABLE entity_warning (
   ttl BIGINT,
   creation BIGINT,
   warning BIGINT,
-  tags TEXT,
+  tags SET<TEXT>,
   PRIMARY KEY (entity, aggregate, key, ttw)
 );
 
@@ -47,7 +47,7 @@ CREATE TABLE aggregate_expiration (
   ttl BIGINT,
   creation BIGINT,
   expiration BIGINT,
-  tags TEXT,
+  tags SET<TEXT>,
   PRIMARY KEY (aggregate, entity, key)
 );
 
@@ -58,7 +58,7 @@ CREATE TABLE entity_expiration (
   ttl BIGINT,
   creation BIGINT,
   expiration BIGINT,
-  tags TEXT,
+  tags SET<TEXT>,
   PRIMARY KEY (entity, aggregate, key)
 );
 
@@ -71,7 +71,7 @@ CREATE TABLE tag_expiration (
   key TEXT,
   ttl BIGINT,
   creation BIGINT,
-  tags TEXT,
+  tags SET<TEXT>,
   PRIMARY KEY ((tag, window), expiration, aggregate, entity)
 );
 
@@ -83,7 +83,7 @@ CREATE TABLE key_expiration (
   entity TEXT,
   ttl BIGINT,
   creation BIGINT,
-  tags TEXT,
+  tags SET<TEXT>,
   PRIMARY KEY ((key, window), expiration, aggregate, entity)
 );
 

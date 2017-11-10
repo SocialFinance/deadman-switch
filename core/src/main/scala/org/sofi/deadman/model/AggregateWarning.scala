@@ -8,7 +8,7 @@ final case class AggregateWarning(
   ttl: Long,
   creation: Long,
   warning: Long,
-  tags: String
+  tags: Set[String]
 )
 
 object AggregateWarning {
@@ -18,7 +18,7 @@ object AggregateWarning {
 
   // Syntactic sugar on warning model
   implicit class AggregateWarningOps(val w: AggregateWarning) extends AnyVal {
-    def asTask: Task = Task(w.key, w.aggregate, w.entity, w.creation, w.ttl, Seq(w.ttw), w.tags.split(",").filterNot(_.isEmpty))
+    def asTask: Task = Task(w.key, w.aggregate, w.entity, w.creation, w.ttl, Seq(w.ttw), w.tags.toSeq.sorted)
   }
 
   // Get warnings for an aggregate

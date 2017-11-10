@@ -8,7 +8,7 @@ final case class KeyExpiration(
   entity: String,
   ttl: Long,
   creation: Long,
-  tags: String
+  tags: Set[String]
 )
 
 object KeyExpiration {
@@ -17,7 +17,7 @@ object KeyExpiration {
   import org.sofi.deadman.storage._, db._
 
   implicit class KeyExpirationOps(val e: KeyExpiration) extends AnyVal {
-    def asTask: Task = Task(e.key, e.aggregate, e.entity, e.creation, e.ttl, Seq.empty, e.tags.split(",").filterNot(_.isEmpty))
+    def asTask: Task = Task(e.key, e.aggregate, e.entity, e.creation, e.ttl, Seq.empty, e.tags.toSeq.sorted)
   }
 
   // Get expirations for the given key and time window, limited to a set time range

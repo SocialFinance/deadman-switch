@@ -23,7 +23,7 @@ final class AggregateExpirationWriter(val id: String, val eventLog: ActorRef) ex
   // Convert events to models and batch. Note: An event handler should never write to the database directly.
   def onEvent = {
     case TaskExpiration(t, exp) ⇒
-      batch(AggregateExpiration(t.aggregate, t.entity, t.key, t.ttl, t.ts, exp, t.tags.sorted.mkString(",")))
+      batch(AggregateExpiration(t.aggregate, t.entity, t.key, t.ttl, t.ts, exp, t.tags.toSet))
   }
 
   // Save a series of aggregate expirations to C*

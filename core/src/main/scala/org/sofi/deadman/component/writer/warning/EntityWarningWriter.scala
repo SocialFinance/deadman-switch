@@ -23,7 +23,7 @@ final class EntityWarningWriter(val id: String, val eventLog: ActorRef) extends 
   // Convert events to models and batch. Note: An event handler should never write to the database directly.
   def onEvent = {
     case TaskWarning(t, ttw, ts) ⇒
-      batch(EntityWarning(t.entity, t.key, ttw, t.aggregate, t.ttl, t.ts, ts, t.tags.sorted.mkString(",")))
+      batch(EntityWarning(t.entity, t.key, ttw, t.aggregate, t.ttl, t.ts, ts, t.tags.toSet))
   }
 
   // Save an entity expiration to C*

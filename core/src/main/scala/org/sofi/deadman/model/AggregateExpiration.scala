@@ -7,7 +7,7 @@ final case class AggregateExpiration(
   ttl: Long,
   creation: Long,
   expiration: Long,
-  tags: String
+  tags: Set[String]
 )
 
 object AggregateExpiration {
@@ -17,7 +17,7 @@ object AggregateExpiration {
 
   // Syntactic sugar on expiration model
   implicit class AggregateExpirationOps(val e: AggregateExpiration) extends AnyVal {
-    def asTask: Task = Task(e.key, e.aggregate, e.entity, e.creation, e.ttl, Seq.empty, e.tags.split(",").filterNot(_.isEmpty))
+    def asTask: Task = Task(e.key, e.aggregate, e.entity, e.creation, e.ttl, Seq.empty, e.tags.toSeq.sorted)
   }
 
   // Get expirations for an aggregate

@@ -7,7 +7,7 @@ final case class EntityExpiration(
   ttl: Long,
   creation: Long,
   expiration: Long,
-  tags: String
+  tags: Set[String]
 )
 
 object EntityExpiration {
@@ -17,7 +17,7 @@ object EntityExpiration {
 
   // Syntactic sugar on entity expiration model
   implicit class EntityExpirationOps(val e: EntityExpiration) extends AnyVal {
-    def asTask: Task = Task(e.key, e.aggregate, e.entity, e.creation, e.ttl, Seq.empty, e.tags.split(",").filterNot(_.isEmpty))
+    def asTask: Task = Task(e.key, e.aggregate, e.entity, e.creation, e.ttl, Seq.empty, e.tags.toSeq.sorted)
   }
 
   // Get expirations for an entity
