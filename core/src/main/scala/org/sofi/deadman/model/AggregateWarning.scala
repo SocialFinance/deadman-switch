@@ -33,18 +33,8 @@ object AggregateWarning {
   def save(models: List[AggregateWarning])(implicit ec: ExecutionContext): Future[Unit] =
     db.run {
       quote {
-        liftQuery(models).foreach { w ⇒
-          query[AggregateWarning]
-            .filter(_.aggregate == w.aggregate)
-            .filter(_.entity == w.entity)
-            .filter(_.key == w.key)
-            .filter(_.ttw == w.ttw)
-            .update(
-              _.ttl -> w.ttl,
-              _.creation -> w.creation,
-              _.warning -> w.warning,
-              _.tags -> w.tags
-            )
+        liftQuery(models).foreach { model ⇒
+          query[AggregateWarning].insert(model).ifNotExists
         }
       }
     }

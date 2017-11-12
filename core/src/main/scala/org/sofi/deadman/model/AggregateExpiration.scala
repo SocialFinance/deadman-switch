@@ -32,17 +32,8 @@ object AggregateExpiration {
   def save(models: List[AggregateExpiration])(implicit ec: ExecutionContext): Future[Unit] =
     db.run {
       quote {
-        liftQuery(models).foreach { e ⇒
-          query[AggregateExpiration]
-            .filter(_.aggregate == e.aggregate)
-            .filter(_.entity == e.entity)
-            .filter(_.key == e.key)
-            .update(
-              _.ttl -> e.ttl,
-              _.creation -> e.creation,
-              _.expiration -> e.expiration,
-              _.tags -> e.tags
-            )
+        liftQuery(models).foreach { model ⇒
+          query[AggregateExpiration].insert(model).ifNotExists
         }
       }
     }

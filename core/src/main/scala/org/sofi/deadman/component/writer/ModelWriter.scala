@@ -5,7 +5,7 @@ import com.rbmhtechnology.eventuate.EventsourcedWriter
 import org.sofi.deadman.model._
 import scala.concurrent.Future
 
-trait TaskWriter[T] extends EventsourcedWriter[Long, Unit] with ActorLogging with NoTasks {
+trait ModelWriter[T] extends EventsourcedWriter[Long, Unit] with ActorLogging with NoTasksFound {
 
   // Implicit execution context
   protected implicit val executionContext = context.dispatcher

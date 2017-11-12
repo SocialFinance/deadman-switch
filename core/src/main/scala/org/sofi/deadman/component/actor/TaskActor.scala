@@ -41,8 +41,9 @@ final class TaskActor(val aggregate: String, val replica: String, val eventLog: 
   private def schedule(t: Task): Unit = {
     val id = t.id
     tasks = tasks + (id -> ExpireTask(t))
-    val warns = t.ttw.map(ttw ⇒ IssueTaskWarning(t, ttw))
-    warnings = warnings + (id -> warns)
+    if (t.ttw.nonEmpty) {
+      warnings = warnings + (id -> t.ttw.map(ttw ⇒ IssueTaskWarning(t, ttw)))
+    }
   }
 
   // Check for expired tasks and send commands

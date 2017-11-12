@@ -5,6 +5,7 @@ import com.rbmhtechnology.eventuate._
 import com.rbmhtechnology.eventuate.log.cassandra._
 import org.sofi.deadman.component.manager._
 import org.sofi.deadman.component.processor._
+import org.sofi.deadman.log._
 
 final class NetworkLocation(val id: String)(implicit system: ActorSystem) {
 
@@ -17,18 +18,17 @@ final class NetworkLocation(val id: String)(implicit system: ActorSystem) {
     val Array(host, port) = address.split(":")
     ReplicationConnection(host, port.toInt, system.name)
   }
-  private val endpoint = new ReplicationEndpoint(id, Set("L1", "T1", "K1"), logId ⇒ CassandraEventLog.props(logId), connections)
+  private val endpoint = new ReplicationEndpoint(id, logNames, logId ⇒ CassandraEventLog.props(logId), connections)
   endpoint.activate()
 
   // Event Logs
-  val eventLog = endpoint.logs("L1")
-  private val tagLog = endpoint.logs("T1")
-  private val keyLog = endpoint.logs("K1")
+  private val actorLogs = endpoint.logs
+  val eventLog = actorLogs(EventLog.name)
 
   // Event sourced components
-  system.actorOf(TaggedExpirationProcessor.props(TaggedExpirationProcessor.name(id), eventLog, tagLog))
-  system.actorOf(KeyExpirationProcessor.props(KeyExpirationProcessor.name(id), eventLog, keyLog))
-  private val writerManager = system.actorOf(WriterManager.props(id, eventLog, tagLog, keyLog))
+  system.actorOf(TaggedExpirationProcessor.props(TaggedExpirationProcessor.name(id), actorLogs))
+  system.actorOf(KeyExpirationProcessor.props(KeyExpirationProcessor.name(id), actorLogs))
+  private val writerManager = system.actorOf(WriterManager.props(id, actorLogs))
   private val viewManager = system.actorOf(ViewManager.props(id, eventLog))
   val queryManager = system.actorOf(QueryManager.props(viewManager, writerManager))
   val commandManager = system.actorOf(CommandManager.props(CommandManager.name(id), eventLog))

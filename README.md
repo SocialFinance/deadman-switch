@@ -59,9 +59,9 @@ Contains the HTTP/JSON serving layer. Uses Akka streams to control the rate at w
 
 **client**
 
-TODO: Scala client lib
+Contains the Scala client logic for scheduling tasks, completing tasks and listening to event streams.
 
-**client-java**
+**clientj**
 
 TODO: Java client lib
 

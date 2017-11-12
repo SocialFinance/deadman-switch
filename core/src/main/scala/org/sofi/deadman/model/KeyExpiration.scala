@@ -36,18 +36,8 @@ object KeyExpiration {
   def save(models: List[KeyExpiration])(implicit ec: ExecutionContext): Future[Unit] =
     db.run {
       quote {
-        liftQuery(models).foreach { e ⇒
-          query[KeyExpiration]
-            .filter(_.key == e.key)
-            .filter(_.window == e.window)
-            .filter(_.expiration == e.expiration)
-            .filter(_.aggregate == e.aggregate)
-            .filter(_.entity == e.entity)
-            .update(
-              _.ttl -> e.ttl,
-              _.creation -> e.creation,
-              _.tags -> e.tags
-            )
+        liftQuery(models).foreach { model ⇒
+          query[KeyExpiration].insert(model).ifNotExists
         }
       }
     }

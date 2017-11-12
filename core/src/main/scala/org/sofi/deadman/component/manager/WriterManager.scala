@@ -3,10 +3,14 @@ package org.sofi.deadman.component.manager
 import akka.actor._
 import org.sofi.deadman.component.writer.expiration._
 import org.sofi.deadman.component.writer.warning._
+import org.sofi.deadman.log._
 import org.sofi.deadman.messages.query._
 import org.sofi.deadman.messages.query.QueryType._
 
-final class WriterManager(val id: String, val eventLog: ActorRef, val tagLog: ActorRef, val keyLog: ActorRef) extends Actor {
+final class WriterManager(val id: String, eventLogs: Map[String, ActorRef]) extends Actor {
+
+  // Core event log
+  private val eventLog = eventLogs(EventLog.name)
 
   // Writes and handles queries for aggregate expiration events
   private val aggExpWriter = context.actorOf(AggregateExpirationWriter.props(AggregateExpirationWriter.name(id), eventLog))
@@ -21,10 +25,10 @@ final class WriterManager(val id: String, val eventLog: ActorRef, val tagLog: Ac
   private val entWarnWriter = context.actorOf(EntityWarningWriter.props(EntityWarningWriter.name(id), eventLog))
 
   // Writes and handles queries for tagged task expiration events
-  private val tagWriter = context.actorOf(TaggedExpirationWriter.props(TaggedExpirationWriter.name(id), tagLog))
+  private val tagWriter = context.actorOf(TaggedExpirationWriter.props(TaggedExpirationWriter.name(id), eventLogs(TagLog.name)))
 
   // Writes and handles queries for keyed task expiration events
-  private val keyWriter = context.actorOf(KeyExpirationWriter.props(KeyExpirationWriter.name(id), keyLog))
+  private val keyWriter = context.actorOf(KeyExpirationWriter.props(KeyExpirationWriter.name(id), eventLogs(KeyLog.name)))
 
   // Forward queries to the appropriate writer
   def receive: Receive = {
@@ -42,6 +46,5 @@ final class WriterManager(val id: String, val eventLog: ActorRef, val tagLog: Ac
 }
 
 object WriterManager {
-  def props(id: String, eventLog: ActorRef, tagLog: ActorRef, keyLog: ActorRef): Props =
-    Props(new WriterManager(id, eventLog, tagLog, keyLog))
+  def props(id: String, eventLogs: Map[String, ActorRef]): Props = Props(new WriterManager(id, eventLogs))
 }

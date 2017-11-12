@@ -38,19 +38,8 @@ object TagExpiration {
   def save(models: List[TagExpiration])(implicit ec: ExecutionContext): Future[Unit] =
     db.run {
       quote {
-        liftQuery(models).foreach { t ⇒
-          query[TagExpiration]
-            .filter(_.tag == t.tag)
-            .filter(_.window == t.window)
-            .filter(_.expiration == t.expiration)
-            .filter(_.aggregate == t.aggregate)
-            .filter(_.entity == t.entity)
-            .update(
-              _.key -> t.key,
-              _.ttl -> t.ttl,
-              _.creation -> t.creation,
-              _.tags -> t.tags
-            )
+        liftQuery(models).foreach { model ⇒
+          query[TagExpiration].insert(model).ifNotExists
         }
       }
     }
