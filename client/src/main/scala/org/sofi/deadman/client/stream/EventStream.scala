@@ -23,7 +23,7 @@ final class EventStream(val settings: StreamSettings)(implicit val system: Actor
     DurableEventSource(eventLog, fromSequenceNr = settings.offset.getOrElse(0L), aggregateId = settings.aggregate)
 
   // Akka stream based event source
-  val events = Source.fromGraph(eventSource).filter(e ⇒ settings.filter(e.payload))
+  val events = Source.fromGraph(eventSource)
 }
 
 object EventStream {

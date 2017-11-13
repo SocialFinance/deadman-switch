@@ -3,7 +3,6 @@ package org.sofi.deadman.load
 import akka.stream.ActorMaterializer
 import com.typesafe.config.ConfigFactory
 import org.sofi.deadman.client.stream._
-import org.sofi.deadman.messages.event._
 
 // Listen for task expiration and warning events emitted from the deadman switch service
 object Listen extends App {
@@ -12,21 +11,10 @@ object Listen extends App {
   implicit val actorSystem = EventStream.actorSystem(ConfigFactory.load("stream").resolve())
   implicit val materializer = ActorMaterializer()
 
-  // Filter out everything except expirations
-  val expirations = new EventFilter {
-    override def apply(any: Any) = any.isInstanceOf[TaskExpiration]
-  }
-
-  // Filter out everything except warnings
-  val warnings = new EventFilter {
-    override def apply(any: Any) = any.isInstanceOf[TaskWarning]
-  }
-
-  // Only show warnings and expirations for aggregate "1" starting with a given sequence number offset
+  // Show all events for aggregate "1"
   val settings = new StreamSettings {
     val id = "deadman-event-stream-example"
     override val aggregate = Some("1")
-    override val filter = expirations or warnings
   }
 
   // Print task warnings and expirations to stdout

@@ -25,9 +25,11 @@ private[view] trait QueryView extends EventsourcedView with ActorLogging {
   // Update the view state
   def onEvent: Receive = {
     case t: Task ⇒
-      val key = taskKey(t)
-      val updated = state.getOrElse(key, Set.empty).filterNot(_.id == t.id) + t
-      state = state + (key -> updated)
+      if (!t.isExpired) {
+        val key = taskKey(t)
+        val updated = state.getOrElse(key, Set.empty).filterNot(_.id == t.id) + t
+        state = state + (key -> updated)
+      }
     case t: TaskTermination ⇒
       val key = taskTerminationKey(t)
       val updated = state.getOrElse(key, Set.empty).filterNot(_.id == t.id)
