@@ -7,7 +7,7 @@ import org.sofi.deadman.component.manager._
 import org.sofi.deadman.component.processor._
 import org.sofi.deadman.log._
 
-final class NetworkLocation(val id: String)(implicit system: ActorSystem) {
+final class NetworkLocation(val id: String, val passive: Boolean = false)(implicit system: ActorSystem) {
 
   // Config
   private val config = system.settings.config
@@ -18,7 +18,7 @@ final class NetworkLocation(val id: String)(implicit system: ActorSystem) {
     val Array(host, port) = address.split(":")
     ReplicationConnection(host, port.toInt, system.name)
   }
-  private val endpoint = new ReplicationEndpoint(id, logNames, logId ⇒ CassandraEventLog.props(logId), connections)
+  private val endpoint = new ReplicationEndpoint(id, logNames, logId ⇒ CassandraEventLog.props(logId), connections, Filter(passive))
   endpoint.activate()
 
   // Event Logs

@@ -19,6 +19,7 @@ object Main extends App with Server {
   // Read args
   val id = Try(args(0)).getOrElse("")
   val mode = Try(args(1)).getOrElse("")
+  val passive = Try(args(2).toBoolean).getOrElse(false)
 
   // Boot actor system
   val config = if (id.isEmpty) ConfigFactory.load() else ConfigFactory.load(id)
@@ -31,7 +32,7 @@ object Main extends App with Server {
   implicit val requestTimeout: Timeout = FiniteDuration(duration.length, duration.unit)
 
   // Activate replication endpoint
-  val location = new NetworkLocation(id)
+  val location = new NetworkLocation(id, passive)
 
   // Start REST API server
   implicit val streamApi = new StreamApi(location.eventLog)

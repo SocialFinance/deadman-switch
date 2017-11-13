@@ -7,6 +7,8 @@ import com.rbmhtechnology.eventuate.adapter.stream._
 import com.rbmhtechnology.eventuate.log.leveldb._
 import com.typesafe.config.Config
 
+// An Akka stream source of all events. NOTE: event delivery is 'at least once', meaning duplicate warning and expirations events will
+// be received when multiple service locations are active.
 final class EventStream(val settings: StreamSettings)(implicit val system: ActorSystem) {
 
   // Connect to a replication endpoint and activate

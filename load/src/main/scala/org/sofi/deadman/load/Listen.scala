@@ -18,8 +18,10 @@ object Listen extends App {
   }
 
   // Print task warnings and expirations to stdout
-  EventStream(settings).events.runForeach { event ⇒
-    val payload = event.payload
-    println(s"${event.localSequenceNr} ${payload.getClass.getName}\n${payload.toString}")
-  }
+  EventStream(settings).events
+    .filter(_.processId == "loc1_L1") // Hack to filter out dup warnings and expirations
+    .runForeach { event ⇒
+      val payload = event.payload
+      println(s"${event.localSequenceNr} ${payload.getClass.getName}\n${payload.toString}")
+    }
 }
