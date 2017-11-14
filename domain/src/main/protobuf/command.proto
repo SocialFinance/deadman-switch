@@ -3,10 +3,11 @@ syntax = "proto2";
 package org.sofi.deadman.messages;
 
 import "event.proto";
+import "scalapb/scalapb.proto";
 
 // Commands ---------------------------------------------------------------------------------------
 
-message ScheduleTask {
+message ScheduleTask { option (scalapb.message).extends = "org.sofi.deadman.messages.command.Command";
     required string key = 1;       // Task keys
     required string aggregate = 2; // Aggregate ID (eg application)
     required string entity = 3;    // Entity ID (eg customer)
@@ -16,7 +17,7 @@ message ScheduleTask {
     optional uint64 ts = 7;        // Start timestamp (if not provided, current timestamp will be used)
 }
 
-message CompleteTask {
+message CompleteTask { option (scalapb.message).extends = "org.sofi.deadman.messages.command.Command";
     required string key = 1;       // Task key
     required string aggregate = 2; // Aggregate ID (eg application)
     required string entity = 3;    // Entity ID (eg customer)

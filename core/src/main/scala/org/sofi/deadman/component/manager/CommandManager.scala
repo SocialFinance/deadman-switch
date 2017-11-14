@@ -22,8 +22,7 @@ final class CommandManager(val id: String, val eventLog: ActorRef) extends Event
 
   // Forward commands to aggregate specific components
   def onCommand: Receive = {
-    case st: ScheduleTask ⇒ actorFor(st.aggregate) forward st
-    case ct: CompleteTask ⇒ actorFor(ct.aggregate) forward ct
+    case cmd: Command ⇒ actorFor(cmd.aggregate) forward cmd
   }
 
   // Lazy load actors for non-expired task events
