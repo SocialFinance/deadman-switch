@@ -9,6 +9,5 @@ libraryDependencies ++= Seq(
 )
 
 PB.targets in Compile := Seq(
-  PB.gens.java -> (sourceManaged in Compile).value,
-  scalapb.gen(javaConversions=true, grpc=false) -> (sourceManaged in Compile).value
+  scalapb.gen(javaConversions=false, grpc=false) -> (sourceManaged in Compile).value
 )

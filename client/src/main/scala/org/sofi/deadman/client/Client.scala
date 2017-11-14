@@ -22,7 +22,7 @@ trait Client[M[_]] {
 
 // Client factory
 object Client {
-  private val defSettings = new Settings{}
+  private val defSettings = new Settings {}
   def apply(settings: ⇒ Settings = defSettings)(implicit as: ActorSystem, am: ActorMaterializer): Client[Future] =
     AsyncClient(settings)
 }
