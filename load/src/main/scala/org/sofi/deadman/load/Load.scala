@@ -8,7 +8,7 @@ import scala.concurrent._
 import scala.concurrent.duration._
 
 // Load some tasks into the deadman switch service
-object Load extends App with Profile {
+object Load extends App with Settings with Profile {
 
   // Create an actor system
   implicit val actorSystem = ActorSystem("load-actor-system", config)
@@ -16,10 +16,8 @@ object Load extends App with Profile {
   implicit val materializer = ActorMaterializer()
 
   // Create client
-  val settings = new Settings {
-    override val port = scala.util.Random.shuffle(ports).head
-  }
-  val client = Client(settings)
+  override val port = scala.util.Random.shuffle(ports).head
+  val client = Client(this)
 
   // Schedule tasks for a range of aggregates
   (1 to numAggregates).grouped(groupSize).foreach { aggregates ⇒

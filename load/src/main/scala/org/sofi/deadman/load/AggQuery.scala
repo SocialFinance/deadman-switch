@@ -14,10 +14,7 @@ object AggQuery extends App with Profile {
   implicit val materializer = ActorMaterializer()
 
   // Create client
-  val settings = new Settings {
-    override val port = scala.util.Random.shuffle(ports).head
-  }
-  val client = Client(settings)
+  val client = Client()
 
   // Query active tasks by aggregate ID
   (1 to numAggregates).foreach { a ⇒

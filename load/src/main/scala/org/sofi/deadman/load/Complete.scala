@@ -16,10 +16,7 @@ object Complete extends App with Profile {
   implicit val materializer = ActorMaterializer()
 
   // Create client
-  val settings = new Settings {
-    override val port = scala.util.Random.shuffle(ports).head
-  }
-  val client = Client(settings)
+  val client = Client()
 
   // Complete tasks for a range of aggregates
   (1 to numAggregates).grouped(groupSize).foreach { aggregates ⇒
