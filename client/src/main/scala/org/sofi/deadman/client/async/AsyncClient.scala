@@ -33,16 +33,12 @@ final class AsyncClient(val settings: Settings)(implicit val sys: ActorSystem, a
       }
     }
 
-  private def getTasks(uri: String) =
+  def tasks(query: Query): Future[Tasks] = {
+    val uri = s"http://${settings.host}:${settings.port}/deadman/api/v1/${query.uri}"
     Http().singleRequest(HttpRequest(uri = uri)) flatMap { rep ⇒
       Unmarshal(rep.entity).to[Tasks]
     }
-
-  def tasks(agg: String): Future[Tasks] =
-    getTasks(s"http://${settings.host}:${settings.port}/deadman/api/v1/aggregate/$agg")
-
-  def expirations(agg: String): Future[Tasks] =
-    getTasks(s"http://${settings.host}:${settings.port}/deadman/api/v1/aggregate/$agg/expirations")
+  }
 }
 
 object AsyncClient {

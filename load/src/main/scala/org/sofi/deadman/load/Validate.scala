@@ -2,7 +2,7 @@ package org.sofi.deadman.load
 
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
-import org.sofi.deadman.client._
+import org.sofi.deadman.client._, Query._
 import scala.concurrent._
 import scala.concurrent.duration._
 
@@ -25,7 +25,8 @@ object Validate extends App with Profile {
 
   // Validate aggregate expiration data
   (1 to numAggregates).foreach { a ⇒
-    val keys = Await.result(client.expirations(s"$a").map(_.tasks.map(_.key)), 10.seconds)
+    val query = Query(s"$a", Aggregate, Expirations)
+    val keys = Await.result(client.tasks(query).map(_.tasks.map(_.key)), 10.seconds)
     (1 to numEntities).foreach { k ⇒
       val taskKey = s"task$k"
       if (!keys.contains(taskKey)) {

@@ -16,11 +16,8 @@ trait Client[M[_]] {
   // Submit a complete request
   def complete(req: Seq[CompleteReq]): M[TaskTerminations]
 
-  // Get active tasks for an aggregate
-  def tasks(agg: String): M[Tasks]
-
-  // Get expired tasks for an aggregate
-  def expirations(agg: String): M[Tasks]
+  // Query for tasks
+  def tasks(query: Query): M[Tasks]
 }
 
 // Client factory
