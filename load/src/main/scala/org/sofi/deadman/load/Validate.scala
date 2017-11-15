@@ -15,15 +15,15 @@ object Validate extends App with Profile {
   implicit val materializer = ActorMaterializer()
 
   // Create client
-  val client = Client()
+  implicit val client = Client()
 
   // Output status
   var ok = true
 
   // Validate aggregate expiration data
   (1 to numAggregates).foreach { a ⇒
-    val query = Query(s"$a", Aggregate, Expirations)
-    val keys = Await.result(client.tasks(query).map(_.tasks.map(_.key)), 10.seconds)
+    val query = Query(s"$a", Aggregate, Expired)
+    val keys = Await.result(query.exec().map(_.tasks.map(_.key)), 10.seconds)
     (1 to numEntities).foreach { k ⇒
       val taskKey = s"task$k"
       if (!keys.contains(taskKey)) {

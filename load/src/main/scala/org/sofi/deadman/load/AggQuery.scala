@@ -14,11 +14,11 @@ object AggQuery extends App with Profile {
   implicit val materializer = ActorMaterializer()
 
   // Create client
-  val client = Client()
+  implicit val client = Client()
 
   // Query active tasks by aggregate ID
   (1 to numAggregates).foreach { a ⇒
-    Await.result(client.tasks(Query(s"$a", Aggregate)), 10.seconds)
+    Await.result(Query(s"$a", Aggregate).exec(), 10.seconds)
       .tasks.foreach(task ⇒ println(s"${task.aggregate} ${task.entity} ${task.key}"))
   }
 

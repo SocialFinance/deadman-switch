@@ -32,6 +32,6 @@ final class CommandManager(val id: String, val eventLog: ActorRef) extends Event
 }
 
 object CommandManager {
-  def name(id: String): String = s"$id-task-manager"
+  def name(id: String): String = s"$id-command-manager"
   def props(id: String, eventLog: ActorRef): Props = Props(new CommandManager(id, eventLog))
 }

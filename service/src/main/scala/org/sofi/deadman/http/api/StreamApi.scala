@@ -15,7 +15,7 @@ import org.sofi.deadman.messages.validation._
 import scala.concurrent.Future
 import scala.util.control.NonFatal
 
-final class StreamApi(val eventLog: ActorRef)(implicit system: ActorSystem, am: ActorMaterializer) {
+final class StreamApi(val id: String, val eventLog: ActorRef)(implicit system: ActorSystem, am: ActorMaterializer) {
 
   // Execution context
   private implicit val executionContext = system.dispatcher
@@ -24,7 +24,7 @@ final class StreamApi(val eventLog: ActorRef)(implicit system: ActorSystem, am: 
   private val BUFFER_SIZE = 1000
 
   // Writes events to a log
-  private val eventWriter = DurableEventWriter("deadman-switch-stream-api", eventLog)
+  private val eventWriter = DurableEventWriter(s"$id-stream-api", eventLog)
 
   // Stream exception handler
   private def errorMessage[T]: PartialFunction[Throwable, Future[Either[String, T]]] = {
