@@ -1,7 +1,5 @@
 name := "deadman-switch-client"
 
-resolvers += "Eventuate Releases" at "https://dl.bintray.com/rbmhtechnology/maven"
-
 libraryDependencies ++= Seq(
   "com.typesafe.akka" %% "akka-http"            % "10.0.10",
   "com.typesafe.akka" %% "akka-http-spray-json" % "10.0.10",
