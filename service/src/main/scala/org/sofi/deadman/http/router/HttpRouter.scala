@@ -7,9 +7,10 @@ import akka.http.scaladsl.server.Directives._
 import org.sofi.deadman.http.api._
 import org.sofi.deadman.http.json._
 import org.sofi.deadman.http.request._
+import org.sofi.deadman.messages.command._, ResponseType.SUCCESS
 
-final class HttpRouter(implicit query: QueryApi, stream: StreamApi, am: ActorMaterializer) extends JsonProtocol {
-  import query._, stream._
+final class HttpRouter(implicit command: CommandApi, query: QueryApi, stream: StreamApi, am: ActorMaterializer) extends JsonProtocol {
+  import command._, query._, stream._
 
   // format: OFF
 
@@ -136,6 +137,21 @@ final class HttpRouter(implicit query: QueryApi, stream: StreamApi, am: ActorMat
       }
     }
 
+  private val snapshotEp =
+    pathPrefix("deadman" / "api" / "v1" / "aggregate" / Segment / "snapshot") { id ⇒
+      pathEndOrSingleSlash {
+        post {
+          onSuccess(snapshot(id)) { resp ⇒
+            if (resp.responseType == SUCCESS) {
+              complete(NoContent)
+            } else {
+              complete(BadRequest -> Map("error" -> resp.errors))
+            }
+          }
+        }
+      }
+    }
+
   // Combine all endpoints
   val routes =
     schedule ~
@@ -148,7 +164,8 @@ final class HttpRouter(implicit query: QueryApi, stream: StreamApi, am: ActorMat
     entityWarnings ~
     key ~
     keyExpirations ~
-    tags
+    tags ~
+    snapshotEp
 
   // format: ON
 }
