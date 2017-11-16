@@ -44,3 +44,19 @@ message CommandResponse {
     required ResponseType responseType = 1 [default = SUCCESS];
     repeated string errors = 2;
 }
+
+// Snapshot ---------------------------------------------------------------------------------------
+
+message SaveState { option (scalapb.message).extends = "org.sofi.deadman.messages.command.Command";
+    required string aggregate = 1;          // Aggregate ID (eg application)
+}
+
+message TaskState {
+    required string id = 1;                 // The task ID
+    required ExpireTask expiration = 2;     // The task expiration command for the given ID
+    repeated IssueTaskWarning warnings = 3; // The task warning commands for the given ID
+}
+
+message TaskSnapshot {
+    repeated TaskState state = 1;           // Task actor state
+}

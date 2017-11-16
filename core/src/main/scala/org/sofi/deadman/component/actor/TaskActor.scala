@@ -119,6 +119,22 @@ final class TaskActor(val aggregate: String, val replica: String, val eventLog: 
       }
     }
 
+  // Snapshot the current actor state
+  private def snapshot(): Unit = {
+    val state = tasks.map { case (tid, expiration) ⇒
+      TaskState(tid, expiration, warnings.getOrElse(tid, Seq.empty))
+    }
+    save(TaskSnapshot(state.toSeq)) {
+      case Success(metadata) ⇒
+        log.info("Saved snapshot: {}", metadata)
+        sender() ! CommandResponse(SUCCESS)
+      case Failure(err) ⇒
+        log.error("Error saving snapshot: {}", err)
+        sender() ! CommandResponse(ERROR, Seq(err.getMessage))
+
+    }
+  }
+
   // Create persistent events when a command is received
   def onCommand: Receive = {
     case cmd: ScheduleTask ⇒ persistTask(cmd.event)
@@ -126,6 +142,7 @@ final class TaskActor(val aggregate: String, val replica: String, val eventLog: 
     case ExpireTask(task) ⇒ persistTaskExpiration(task)
     case IssueTaskWarning(task, ttw) ⇒ persistTaskWarning(task, ttw)
     case TaskActor.Tick ⇒ onTick()
+    case _:SaveState ⇒ snapshot()
   }
 
   // Schedule or cancel internal commands
@@ -133,7 +150,18 @@ final class TaskActor(val aggregate: String, val replica: String, val eventLog: 
     case t: Task ⇒ if (!t.isExpired) schedule(t)
     case t: TaskTermination ⇒ cancel(t.id)
   }
+
+  // Restore actor state from a snapshot
+  override def onSnapshot = {
+    case s: TaskSnapshot ⇒ s.state.foreach { ts ⇒
+      val id = ts.id
+      log.info("Restoring state for task: {}", id)
+      tasks = tasks + (id -> ts.expiration)
+      warnings = warnings + (id -> ts.warnings)
+    }
+  }
 }
+
 
 object TaskActor {
   case object Tick

@@ -75,6 +75,9 @@ private final class CommandLine(val commandManager: ActorRef, val queryManager: 
       case "complete" :: key :: agg :: ent :: Nil ⇒
         commandManager ! CompleteTask(key, agg, ent)
 
+      case "snapshot" :: agg :: Nil ⇒
+        commandManager ! SaveState(agg)
+
       // Query scheduled tasks
 
       case "query" :: "aggregate" :: id :: Nil ⇒
