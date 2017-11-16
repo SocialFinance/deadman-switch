@@ -7,7 +7,7 @@ import scala.util.Try
 trait Profile { this: App ⇒
 
   // Load config
-  private lazy val profile = Try(args(0)).getOrElse("profile1")
+  private lazy val profile = Try(args(0)).getOrElse("profile0")
   lazy val config = ConfigFactory.load(profile)
 
   // HTTP service locations
