@@ -7,7 +7,7 @@ import com.typesafe.config.ConfigFactory
 object Listen extends App {
 
   // Create an actor system
-  implicit val actorSystem = EventStream.actorSystem(ConfigFactory.load("stream").resolve())
+  implicit val actorSystem = EventStream.actorSystem(ConfigFactory.load().resolve())
   implicit val materializer = ActorMaterializer()
 
   // Show all events for aggregate "1"
@@ -19,6 +19,6 @@ object Listen extends App {
   // Print task warnings and expirations to stdout
   EventStream(settings).events.runForeach { event ⇒
     val payload = event.payload
-    println(s"${event.localSequenceNr} ${payload.getClass.getName}\n${payload.toString}")
+    println(s"${event.localSequenceNr} ${event.processId} ${payload.getClass.getName} ${payload.toString}")
   }
 }

@@ -61,9 +61,9 @@ Contains the HTTP/JSON serving layer. Uses Akka streams to control the rate at w
 
 Contains the Scala client logic for scheduling tasks, completing tasks and listening to event streams.
 
-**clientj**
+**stream**
 
-TODO: Java client lib
+Contains the Scala client logic for consuming a replicated event log as an Akka stream.
 
 **load**
 
@@ -73,7 +73,6 @@ after waiting for task expiration, validated. Validation confirms that all expir
 ## TODO
 
 - Java client lib
-- Scala client lib
 - User Interface: Create a Play Scala web application for querying expirations and warnings
 - Java annotations lib: Add the ability to annotate java methods with @Schedule and @Complete (nice-to-have)
 - Play Scala lib: Add actions for scheduling and completing tasks (optional)
