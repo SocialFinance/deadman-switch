@@ -142,11 +142,8 @@ final class HttpRouter(implicit command: CommandApi, query: QueryApi, stream: St
       pathEndOrSingleSlash {
         post {
           onSuccess(snapshot(id)) { resp ⇒
-            if (resp.responseType == SUCCESS) {
-              complete(NoContent)
-            } else {
-              complete(BadRequest -> Map("error" -> resp.errors))
-            }
+            val status = if (resp.responseType == SUCCESS) Created else BadRequest
+            complete(status -> Map("error" -> resp.errors))
           }
         }
       }

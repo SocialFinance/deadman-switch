@@ -49,7 +49,7 @@ final class StreamApi(val id: String, val eventLog: ActorRef)(implicit system: A
       .map(createTaskEvent)
       .via(eventWriter)
       .map(_.payload.asInstanceOf[Task])
-      .runFold(Seq.empty[Task])((a, t) ⇒ a :+ t)
+      .runFold(Seq.empty[Task])(_ :+ _)
       .map(tasks ⇒ Right(Tasks(tasks)))
       .recoverWith(errorMessage)
 

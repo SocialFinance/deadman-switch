@@ -50,10 +50,7 @@ final class TaskActor(val aggregate: String, val replica: String, val eventLog: 
   private def checkExpired(): Unit = {
     val (expired, nonExpired) = tasks.partition(_._2.task.isExpired)
     tasks = nonExpired
-    expired.foreach {
-      case (_, expireTask) ⇒
-        self ! expireTask
-    }
+    expired.values.foreach(cmd ⇒ self ! cmd)
   }
 
   // Check for expired warnings and send commands
@@ -75,18 +72,18 @@ final class TaskActor(val aggregate: String, val replica: String, val eventLog: 
   }
 
   // Create and persist a Task event
-  private def persistTask(event: Task): Unit = {
-    log.info(s"Persisting Task: ${event.id}")
+  private def persistTask(event: Task): Unit =
     persist(event) {
-      case Success(_) ⇒ sender() ! CommandResponse(SUCCESS)
+      case Success(_) ⇒
+        log.info(s"Persisted Task: ${event.id}")
+        sender() ! CommandResponse(SUCCESS)
       case Failure(err) ⇒
         log.error("Unable to persist task {}", err)
         sender() ! CommandResponse(ERROR, Seq(err.getMessage))
     }
-  }
 
   // Create and persist a TaskTermination event
-  private def persistTaskTermination(event: TaskTermination): Unit = {
+  private def persistTaskTermination(event: TaskTermination): Unit =
     if (!tasks.contains(event.id)) {
       log.warning("Task not found: {}", event.id)
       sender() ! CommandResponse(ERROR, Seq(s"Task not found: ${event.id}"))
@@ -99,7 +96,6 @@ final class TaskActor(val aggregate: String, val replica: String, val eventLog: 
           sender() ! CommandResponse(ERROR, Seq(err.getMessage))
       }
     }
-  }
 
   // Create and persist a TaskExpiration event
   private def persistTaskExpiration(task: Task): Unit =
@@ -120,9 +116,10 @@ final class TaskActor(val aggregate: String, val replica: String, val eventLog: 
     }
 
   // Snapshot the current actor state
-  private def snapshot(): Unit = {
-    val state = tasks.map { case (tid, expiration) ⇒
-      TaskState(tid, expiration, warnings.getOrElse(tid, Seq.empty))
+  private def snapshot(): Unit = if (tasks.nonEmpty) {
+    val state = tasks.map {
+      case (tid, expiration) ⇒
+        TaskState(tid, expiration, warnings.getOrElse(tid, Seq.empty))
     }
     save(TaskSnapshot(state.toSeq)) {
       case Success(metadata) ⇒
@@ -131,8 +128,9 @@ final class TaskActor(val aggregate: String, val replica: String, val eventLog: 
       case Failure(err) ⇒
         log.error("Error saving snapshot: {}", err)
         sender() ! CommandResponse(ERROR, Seq(err.getMessage))
-
     }
+  } else {
+    sender() ! CommandResponse(ERROR, Seq("No active tasks available to snapshot"))
   }
 
   // Create persistent events when a command is received
@@ -142,7 +140,7 @@ final class TaskActor(val aggregate: String, val replica: String, val eventLog: 
     case ExpireTask(task) ⇒ persistTaskExpiration(task)
     case IssueTaskWarning(task, ttw) ⇒ persistTaskWarning(task, ttw)
     case TaskActor.Tick ⇒ onTick()
-    case _:SaveState ⇒ snapshot()
+    case _: SaveState ⇒ snapshot()
   }
 
   // Schedule or cancel internal commands
@@ -154,14 +152,12 @@ final class TaskActor(val aggregate: String, val replica: String, val eventLog: 
   // Restore actor state from a snapshot
   override def onSnapshot = {
     case s: TaskSnapshot ⇒ s.state.foreach { ts ⇒
-      val id = ts.id
-      log.info("Restoring state for task: {}", id)
-      tasks = tasks + (id -> ts.expiration)
-      warnings = warnings + (id -> ts.warnings)
+      log.info("Restoring state for task: {}", ts.id)
+      tasks = tasks + (ts.id -> ts.expiration)
+      warnings = warnings + (ts.id -> ts.warnings)
     }
   }
 }
-
 
 object TaskActor {
   case object Tick
