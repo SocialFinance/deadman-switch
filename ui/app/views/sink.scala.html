@@ -1,0 +1,15 @@
+@main {
+    <h2>Event Stream</h2>
+    <p>Events are pushed from the Server using a Server Sent Event connection.</p>
+    <div id="sink"></div>
+    <script type="text/javascript" charset="utf-8">
+       if (!!window.EventSource) {
+         var stringSource = new EventSource("@routes.EventStreamController.events()");
+         stringSource.addEventListener('message', function(e) {
+            $('#sink').append('<div>' + e.data + '</div>')
+         });
+       } else {
+         $("#clock").html("Sorry. This browser doesn't seem to support Server sent event. Check <a href='http://html5test.com/compare/feature/communication-eventSource.html'>html5test</a> for browser compatibility.");
+       }
+    </script>
+}

@@ -23,8 +23,8 @@ lazy val root =
       publishLocal := {},
       publishArtifact := false,
       packagedArtifacts := Map.empty)
-    .dependsOn(domain, core, service, client, stream, load)
-    .aggregate(domain, core, service, client, stream, load)
+    .dependsOn(domain, core, service, client, stream, load, ui)
+    .aggregate(domain, core, service, client, stream, load, ui)
     .disablePlugins(RevolverPlugin, JavaAppPackaging, ProtocPlugin)
 
 lazy val domain = project
@@ -82,6 +82,15 @@ lazy val load = project
     publish in Docker := {},
     publishLocal in Docker := {})
   .enablePlugins(SbtNativePackager)
+  .disablePlugins(ProtocPlugin, RevolverPlugin)
+
+lazy val ui = project
+  .dependsOn(client, stream)
+  .settings(baseSettings: _*)
+  .settings(
+    publish in Docker := {},
+    publishLocal in Docker := {})
+  .enablePlugins(PlayScala)
   .disablePlugins(ProtocPlugin, RevolverPlugin)
 
 val preferences = ScalariformKeys.preferences := ScalariformKeys.preferences.value
