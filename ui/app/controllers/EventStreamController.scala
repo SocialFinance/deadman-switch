@@ -10,11 +10,11 @@ import play.api.libs.EventSource
 import play.api.mvc._
 
 @Singleton
-class EventStreamController @Inject() (cc: ControllerComponents)(implicit system: ActorSystem) extends AbstractController(cc) {
+final class EventStreamController @Inject() (cc: ControllerComponents)(implicit system: ActorSystem) extends AbstractController(cc) {
 
-  implicit val materializer = ActorMaterializer()
-  val settings = new StreamSettings { val id = "event-stream-controller" }
-  val source: Source[String, _] = EventStream(settings).events.map(_.payload.toString)
+  private implicit val materializer = ActorMaterializer()
+  private val settings = new StreamSettings { val id = "event-stream-controller" }
+  private val source: Source[String, _] = EventStream(settings).events.map(_.payload.toString)
 
   def index() = Action {
     Ok(views.html.sink())
