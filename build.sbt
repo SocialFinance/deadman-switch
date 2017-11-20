@@ -48,7 +48,7 @@ lazy val service = project
   .dependsOn(core)
   .settings(baseSettings: _*)
   .settings(
-    mappings in (Compile, packageBin) ++= (mappings in (domain, Compile, packageBin)).value,
+    mappings in (Compile, packageBin) ++= (mappings in (core, Compile, packageBin)).value,
     publish := {},
     publishLocal := {},
     publishArtifact := true)

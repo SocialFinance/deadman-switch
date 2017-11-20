@@ -9,16 +9,14 @@ import play.api.test.Helpers._
 /**
  * Integration test to run through event source.
  */
-class EventSourceControllerSpec extends PlaySpec
-  with GuiceOneAppPerSuite
-  with ScalaFutures {
-  "event source controller" should {
+class HomeControllerSpec extends PlaySpec with GuiceOneAppPerSuite with ScalaFutures {
+  "The home controller" should {
     "return OK through route" in {
-      val request = FakeRequest(method = GET, path = "/scala/eventSource/liveClock")
+      val request = FakeRequest(method = GET, path = "/deadman/")
       route(app, request) match {
         case Some(future) ⇒
           whenReady(future) { result ⇒
-            result.header.status mustEqual (OK)
+            result.header.status mustEqual OK
           }
         case None ⇒
           fail
