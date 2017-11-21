@@ -1,8 +1,11 @@
 package controllers
 
-import akka.actor._
+import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
-import akka.stream.scaladsl.Source
+import com.trueaccord.scalapb.GeneratedMessage
+import com.trueaccord.scalapb.json.JsonFormat
+import org.json4s.JsonAST._
+import org.json4s.jackson.JsonMethods
 import org.sofi.deadman.client.stream._
 import javax.inject.{ Inject, Singleton }
 import play.api.http.ContentTypes
@@ -12,9 +15,14 @@ import play.api.mvc._
 @Singleton
 final class EventStreamController @Inject() (cc: ControllerComponents)(implicit system: ActorSystem) extends AbstractController(cc) {
 
-  private implicit val materializer = ActorMaterializer()
+  implicit val materializer = ActorMaterializer()
   private val settings = new StreamSettings { val id = "event-stream-controller" }
-  private val source: Source[String, _] = EventStream(settings).events.map(_.payload.toString)
+
+  private val source = EventStream(settings).events.map { e ⇒
+    val obj = JsonFormat.toJson(e.payload.asInstanceOf[GeneratedMessage])
+    val objType = JObject(("type", JString(e.payload.getClass.getSimpleName)))
+    JsonMethods.compact(JsonMethods.render(obj merge objType))
+  }
 
   def index() = Action {
     Ok(views.html.sink())

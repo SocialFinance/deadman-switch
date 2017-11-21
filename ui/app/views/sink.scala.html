@@ -3,12 +3,17 @@
     <p>Events are pushed from the Server using a Server Sent Event connection.</p>
     <div id="sink"></div>
     <script type="text/javascript" charset="utf-8">
-      if (!!window.EventSource) {
-        var listener = function(e) {
-          $('#sink').append('<div>' + e.data + '</div>');
-        };
-        var source = new EventSource("@routes.EventStreamController.events()");
-        source.addEventListener('message', listener);
-      }
+        if (!!window.EventSource) {
+            var source = new EventSource("@routes.EventStreamController.events()");
+            source.addEventListener('message', function(e) {
+                var data = JSON.parse(e.data);
+                if (data.type === 'TaskWarning' || data.type === 'TaskExpiration') {
+                    $('#sink').append('<div>' + e.data + '</div>');
+                }
+            });
+            var reset = function() { $('#sink').html(''); };
+            source.addEventListener('open', reset);
+            source.addEventListener('error', reset);
+        }
     </script>
 }
