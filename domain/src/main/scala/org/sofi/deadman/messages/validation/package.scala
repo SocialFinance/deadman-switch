@@ -7,7 +7,7 @@ import scala.util.Try
 
 package object validation {
 
-  type ValidationResult[A] = cats.data.ValidatedNel[DomainValidation, A]
+  type ValidationResult[A] = cats.data.ValidatedNel[ValidationError, A]
 
   // String field must be non-empty
   private def validateString(field: String, value: String) =
