@@ -3,13 +3,14 @@ name := "deadman-switch-client-stream"
 resolvers += "Eventuate Releases" at "https://dl.bintray.com/rbmhtechnology/maven"
 
 libraryDependencies ++= Seq(
-  "com.rbmhtechnology" %% "eventuate-core"           % "0.8.1",
-  "com.rbmhtechnology" %% "eventuate-log-leveldb"    % "0.8.1",
-  "com.rbmhtechnology" %% "eventuate-adapter-stream" % "0.8.1",
-  "com.typesafe.akka"  %% "akka-slf4j"               % "2.4.18",
-  "ch.qos.logback"      % "logback-classic"          % "1.1.6",
-  "com.typesafe.akka"  %% "akka-testkit"             % "2.4.12" % "test",
-  "org.scalatest"      %% "scalatest"                % "3.0.0"  % "test"
+  "com.rbmhtechnology"     %% "eventuate-core"           % "0.8.1",
+  "com.rbmhtechnology"     %% "eventuate-log-leveldb"    % "0.8.1",
+  "com.rbmhtechnology"     %% "eventuate-adapter-stream" % "0.8.1",
+  "com.trueaccord.scalapb" %% "scalapb-json4s"           % "0.3.3",
+  "com.typesafe.akka"      %% "akka-slf4j"               % "2.4.18",
+  "ch.qos.logback"          % "logback-classic"          % "1.1.6",
+  "com.typesafe.akka"      %% "akka-testkit"             % "2.4.12" % "test",
+  "org.scalatest"          %% "scalatest"                % "3.0.0"  % "test"
 )
 
 fork in run := true
