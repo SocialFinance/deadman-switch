@@ -1,0 +1,9 @@
+@()
+<h2>Deadman Switch UI</h2>
+<div>
+    <a href="@routes.EventStreamController.index()">Event Stream</a>
+    <a href="@routes.TasksController.tasks("1")">Active Tasks</a>
+    <a href="@routes.TasksController.warnings("1")">Warnings</a>
+    <a href="@routes.TasksController.expirations("1")">Expirations</a>
+</div>
+<hr/>

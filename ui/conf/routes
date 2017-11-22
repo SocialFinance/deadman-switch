@@ -1,8 +1,10 @@
 # Routes
 # This file defines all application routes (Higher priority routes first)
 # ~~~~
-GET        /assets/*file         controllers.Assets.at(path="/public", file)
-GET        /                     controllers.HomeController.index()
-GET        /stream               controllers.EventStreamController.index()
-GET        /stream/events        controllers.EventStreamController.events()
-
+GET        /assets/*file             controllers.Assets.at(path="/public", file)
+GET        /                         controllers.HomeController.index()
+GET        /stream                   controllers.EventStreamController.index()
+GET        /stream/events            controllers.EventStreamController.events()
+GET        /tasks/:id                controllers.TasksController.tasks(id: String)
+GET        /tasks/:id/expirations    controllers.TasksController.expirations(id: String)
+GET        /tasks/:id/warnings       controllers.TasksController.warnings(id: String)

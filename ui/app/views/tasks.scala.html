@@ -1,0 +1,18 @@
+@import org.sofi.deadman.messages.query.Tasks
+@(id: String, label: String, t: Tasks)
+@main {
+    @menu()
+    <h2>@label</h2>
+    <p>Aggregate: @id</p>
+    @for(task ← t.tasks) {
+        <div>
+            entity: @task.entity<br/>
+            key: @task.key<br/>
+            ts: @task.ts<br/>
+            ttl: @task.ttl<br/>
+            ttw: @task.ttw.mkString(",")<br/>
+            tags: @task.tags.mkString(",")<br/>
+        </div>
+        <br/>
+    }
+}
