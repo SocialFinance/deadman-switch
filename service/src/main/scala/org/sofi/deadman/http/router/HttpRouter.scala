@@ -18,7 +18,7 @@ final class HttpRouter(implicit command: CommandApi, query: QueryApi, stream: St
     path("deadman" / "api" / "v1" / "schedule") {
       entity(asSourceOf[ScheduleRequest]) { source ⇒
         onSuccess(scheduleTasks(source)) {
-          case Left(error) ⇒ complete(BadRequest -> Map("error" -> error))
+          case Left(error) ⇒ complete(BadRequest -> Map("errors" -> error.split("\n")))
           case Right(tasks) ⇒ complete(Created -> tasks)
         }
       }
@@ -28,7 +28,7 @@ final class HttpRouter(implicit command: CommandApi, query: QueryApi, stream: St
     path("deadman" / "api" / "v1" / "complete") {
       entity(asSourceOf[CompleteRequest]) { source ⇒
         onSuccess(completeTasks(source)) {
-          case Left(error) ⇒ complete(BadRequest -> Map("error" -> error))
+          case Left(error) ⇒ complete(BadRequest -> Map("errors" -> error.split("\n")))
           case Right(terminated) ⇒ complete(terminated)
         }
       }

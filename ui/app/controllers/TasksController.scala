@@ -10,10 +10,10 @@ final class TasksController @Inject() (cc: ControllerComponents)(implicit sys: A
 
   implicit val ec = cc.executionContext
   implicit val am = ActorMaterializer()
-  val client = Client()
+  implicit val client = Client()
 
   private def runQuery(id: String, label: String, query: Query) =
-    client.tasks(query).map { t ⇒
+    query.exec().map { t ⇒
       Ok(views.html.tasks(id, label, t))
     }
 

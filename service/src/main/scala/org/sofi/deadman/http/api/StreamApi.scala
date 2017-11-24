@@ -1,6 +1,5 @@
 package org.sofi.deadman.http.api
 
-import akka.NotUsed
 import akka.actor._
 import akka.stream._
 import akka.stream.scaladsl._
@@ -35,14 +34,14 @@ final class StreamApi(val id: String, val eventLog: ActorRef)(implicit system: A
 
   // Filter out valid schedule task commands and log validation errors
   private def createTaskEvent(result: ValidationResult[ScheduleTask]) = result match {
-    case Invalid(nel) ⇒ throw new Exception(nel.map(_.error).toList.mkString(", "))
+    case Invalid(nel) ⇒ throw new Exception(nel.map(_.error).toList.mkString("\n"))
     case Valid(command) ⇒
       val t = command.event
       DurableEvent(payload = t, emitterAggregateId = Option(t.aggregate))
   }
 
   // Use the Eventuate Akka streams adapter to persist task events directly to an event log
-  def scheduleTasks(source: Source[ScheduleRequest, NotUsed]): Future[Either[String, Tasks]] =
+  def scheduleTasks(source: Source[ScheduleRequest, _]): Future[Either[String, Tasks]] =
     source.buffer(BUFFER_SIZE, OverflowStrategy.backpressure)
       .map(_.ensureTimestamp)
       .map(_.validate)
@@ -55,14 +54,14 @@ final class StreamApi(val id: String, val eventLog: ActorRef)(implicit system: A
 
   // Filter out valid complete task commands and log validation errors
   private def createTaskTerminationEvent(result: ValidationResult[CompleteTask]) = result match {
-    case Invalid(nel) ⇒ throw new Exception(nel.map(_.error).toList.mkString(", "))
+    case Invalid(nel) ⇒ throw new Exception(nel.map(_.error).toList.mkString("\n"))
     case Valid(command) ⇒
       val t = command.event
       DurableEvent(payload = t, emitterAggregateId = Option(t.aggregate))
   }
 
   // Use the Eventuate Akka streams adapter to persist task termination events directly to an event log
-  def completeTasks(source: Source[CompleteRequest, NotUsed]): Future[Either[String, TaskTerminations]] =
+  def completeTasks(source: Source[CompleteRequest, _]): Future[Either[String, TaskTerminations]] =
     source.buffer(BUFFER_SIZE, OverflowStrategy.backpressure)
       .map(_.validate)
       .map(createTaskTerminationEvent)
