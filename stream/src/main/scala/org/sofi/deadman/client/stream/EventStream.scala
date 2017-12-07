@@ -34,7 +34,7 @@ final class EventStream(val settings: StreamSettings)(implicit val system: Actor
   // Akka stream based JSON event source
   val jsonEvents = Source.fromGraph(eventSource).map { e ⇒
     val obj = JsonFormat.toJson(e.payload.asInstanceOf[GeneratedMessage])
-    val objType = JObject(("type", JString(e.payload.getClass.getSimpleName)))
+    val objType = JObject(("type", JString(e.payload.getClass.getName)))
     JsonMethods.compact(JsonMethods.render(obj merge objType))
   }
 }
